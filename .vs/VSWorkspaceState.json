@@ -1,0 +1,19 @@
+{
+  "OutputFoldersPerTargetSystem": {
+    "Local Machine": [
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\build\\x86-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\install\\x86-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\build\\x86-Release",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\install\\x86-Release",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\build\\x64-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\install\\x64-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\build\\x64-Release",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8308d92d-2267-481c-9069-4bd0abcda292\\install\\x64-Release"
+    ]
+  },
+  "ExpandedNodes": [
+    ""
+  ],
+  "SelectedNode": "\\CMakeLists.txt",
+  "PreviewInSolutionExplorer": false
+}
