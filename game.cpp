@@ -117,7 +117,7 @@ void Game::SetupResources(void){
 	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
-    resman_.CreateTerrain("TerrainMesh", 1.0, 1.0, 4, 4);
+    resman_.CreateTerrain("TerrainMesh", 50.0, 50.0, 2000, 2000);
 
     //RESOURCE MANAGER ADDS TO THE FILENAME STRING 
     // Load shader for texture mapping
@@ -153,7 +153,7 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Material, "Combined", filename.c_str());
 
 	// Load texture to be used on the object
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/rocky.png");
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/moon.jpg");
 	resman_.LoadResource(Texture, "RockyTexture", filename.c_str());
 
 	// Load texture to be used on the object
@@ -180,7 +180,7 @@ void Game::SetupScene(void){
     game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "SeamlessTorusMesh", "Combined", "Blocks");     
     game::SceneNode *sphere = CreateInstance("MySphere", "SphereMesh", "Sun", "Blocks");
     
-    game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "Checkers", "NormalMap");   
+    game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture");   
 
 	mytorus1->Translate(glm::vec3(3.0, 0.5, 0));
     mytorus1->Scale(glm::vec3(1.0, 1.0, 1.0));
@@ -194,7 +194,7 @@ void Game::SetupScene(void){
     sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
 
     floor->Rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-    floor->Translate(glm::vec3(-50, -2.0, 50));
+    floor->Translate(glm::vec3(-200, -20.0, -800));
     floor->Scale(glm::vec3(100.0, 100.0, 100.0));
 
 	//game::SceneNode *mytorus = CreateInstance("MyTorus1", "SeamlessTorusMesh", "Lighting", "RockyTexture");

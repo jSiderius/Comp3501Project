@@ -1083,19 +1083,28 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
     }
 
     // Create vertices 
-    float theta, phi; // Angles for circles
-    glm::vec3 loop_center;
     glm::vec3 vertex_position;
     glm::vec3 vertex_normal;
     glm::vec3 vertex_color;
     glm::vec2 vertex_coord;
 	float s, t;
-    s = 0.0;
-    t = 0.0;
+    s = 1.0;
+    t = 1.0;
+
+    std::random_device rd; 
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> distribution(-0.08, 0.08);
+
+    glm::vec3 midpoint = glm::vec3(length/2, width/2, 0);
+
+    std::vector<std::vector<int>> height_map = ReadHeightMap("C:\\Users\\Josh\\School\\Code\\COMP3501\\Project\\Project\\height_map.txt");
     for(int i = 0; i < num_length_samples; i++){
         for(int j = 0; j < num_width_samples; j++){
             vertex_normal = glm::vec3(0,0,1);
-            vertex_position = glm::vec3(static_cast<float>(i)* length/num_length_samples, static_cast<float>(j)*width/num_width_samples, 0);
+            vertex_position = glm::vec3(static_cast<float>(i)* length/num_length_samples, static_cast<float>(j)*width/num_width_samples, -static_cast<float>(height_map[i][j])/15.0f); //distribution(gen));
+            // float distance = glm::length(vertex_position - midpoint);
+            // vertex_position.z = distance/4;
+
             vertex_color = glm::vec3(1.0, 1.0, 1.0);
             // vertex_coord = glm::vec2(s,t);
             vertex_coord = glm::vec2(static_cast<float>(i) / num_length_samples, static_cast<float>(j) / num_width_samples);
@@ -1110,56 +1119,40 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
             vertex[index + 10] = vertex_coord[1];
         }
     }
-    for(int i = 0; i < num_length_samples * num_width_samples * vertex_att; i++){
-        for(int j = 0; j < num_width_samples; j++){
-            std::cout<<"["<<std::endl;
-            for(int k = 0; k < vertex_att; k++){
-                std::cout<<vertex[i*vertex_att*num_width_samples + j*vertex_att + k]<<" ";
-            }std::cout<<"]"<<std::endl;
-        }
-        
-    }
-    
-
-    // Create faces (triangles)
-int face_index = 0;
-for (int i = 0; i < num_length_samples; i++) {
-    for (int j = 0; j < num_width_samples; j++) {
-        // Define the indices of the four vertices of the quad
-        int vertex_index00 = i * (num_width_samples + 1) + j;
-        int vertex_index01 = vertex_index00 + 1;
-        int vertex_index10 = (i + 1) * (num_width_samples + 1) + j;
-        int vertex_index11 = vertex_index10 + 1;
-
-        // Create two triangles for each quad
-        face[face_index++] = vertex_index00;
-        face[face_index++] = vertex_index10;
-        face[face_index++] = vertex_index01;
-
-        face[face_index++] = vertex_index01;
-        face[face_index++] = vertex_index10;
-        face[face_index++] = vertex_index11;
-    }
-}
-
     // for(int i = 0; i < num_length_samples; i++){
     //     for(int j = 0; j < num_width_samples; j++){
-    //         // Two triangles per quad
-	// 		glm::vec3 t1((i + 1)*(num_width_samples + 1) + j,
-	// 			i*(num_width_samples + 1) + (j + 1),
-	// 			i*(num_width_samples + 1) + j);
-
-	// 		glm::vec3 t2((i + 1)*(num_width_samples + 1) + j,
-	// 			(i + 1)*(num_width_samples + 1) + (j + 1),
-	// 			i*(num_width_samples + 1) + (j + 1));
-    //         // Add two triangles to the data buffer
-    //         for (int k = 0; k < 3; k++){
-    //             face[(i*(num_width_samples)+j)*face_att*2 + k] = static_cast<GLuint>(t1[k]);
-    //             face[(i*(num_width_samples)+j)*face_att*2 + k + face_att] = static_cast<GLuint>(t2[k]);
-    //         }
+    //         std::cout<<"i: " << i << " j: "<< j << " [";
+    //         for(int k = 0; k < vertex_att; k++){
+    //             std::cout<<vertex[i*vertex_att*num_width_samples + j*vertex_att + k]<<" ";
+    //         }std::cout<<"]"<<std::endl;
     //     }
     // }
-    
+
+    for(int i = 0; i < num_length_samples- 1; i++){
+        for(int j = 0; j < num_width_samples -1; j++){
+            glm::vec3 t1(i * num_width_samples + j,
+                     i * num_width_samples + (j + 1),
+                     (i + 1) * num_width_samples + j);
+
+            glm::vec3 t2(i * num_width_samples + (j + 1),
+                        (i + 1) * num_width_samples + (j + 1),
+                        (i + 1) * num_width_samples + j);
+            // Add two triangles to the data buffer
+            for (int k = 0; k < 3; k++){
+                face[(i*(num_width_samples)+j)*face_att*2 + k] = static_cast<GLuint>(t1[k]);
+                face[(i*(num_width_samples)+j)*face_att*2 + k + face_att] = static_cast<GLuint>(t2[k]);
+            }
+        }
+    }
+
+    // std::vector<std::vector<int>> heightMap = ReadHeightMap("C:\\Users\\Josh\\School\\Code\\COMP3501\\Project\\Project\\height_map.txt");
+    // for (const auto& row : heightMap){
+    //     for(int value : row){
+    //         std::cout << value << " ";
+    //     }
+    //         std::cout << std::endl;
+    // }
+
     GLuint vbo, ebo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -1177,4 +1170,33 @@ for (int i = 0; i < num_length_samples; i++) {
     AddResource(Mesh, object_name, vbo, ebo, face_num * face_att);
 }
 
+std::vector<std::vector<int>> ResourceManager::ReadHeightMap(const std::string& filename){
+    std::vector<std::vector<int>> heightMap;
+
+    std::ifstream file(filename);
+    if(!file.is_open()){
+        std::cerr << "Error opening file: " << filename << std::endl; 
+        exit(0);
+    }
+
+    std::string line;
+    while(std::getline(file, line)){
+        std::vector<int> row; 
+        std::istringstream iss(line);
+
+        int value;
+        while(iss >> value){
+            row.push_back(value);
+        }
+
+        heightMap.push_back(row);
+    }
+
+    file.close();
+
+    return heightMap;
+}
+// float ResourceManager::perlin_noise(int x, int y){
+
+// }
 } // namespace game;
