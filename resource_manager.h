@@ -6,6 +6,10 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <random> 
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "resource.h"
 
@@ -55,6 +59,7 @@ namespace game {
             void LoadTexture(const std::string name, const char *filename);
             // Loads a mesh in obj format
             void LoadMesh(const std::string name, const char *filename);
+            std::vector<std::vector<int>> ReadHeightMap(const std::string& filename);
 
     }; // class ResourceManager
 
