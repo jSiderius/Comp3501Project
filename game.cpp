@@ -117,6 +117,7 @@ void Game::SetupResources(void){
 	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
+    resman_.CreateTerrain("TerrainMesh", 1.0, 1.0, 4, 4);
 
     //RESOURCE MANAGER ADDS TO THE FILENAME STRING 
     // Load shader for texture mapping
@@ -127,6 +128,9 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/corona");
 	resman_.LoadResource(Material, "Procedural", filename.c_str());
 
+    // Load material to be used for normal mapping
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map");
+    resman_.LoadResource(Material, "NormalMapMaterial", filename.c_str());
 
 	// shader for checkerboard effect
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/rectangle"); 
@@ -155,7 +159,10 @@ void Game::SetupResources(void){
 	// Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/download.jpg");
 	resman_.LoadResource(Texture, "WoodTexture", filename.c_str());
-	
+
+    // Load texture to be used in normal mapping
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map2.png");
+    resman_.LoadResource(Texture, "NormalMap", filename.c_str());
 
 }
 
@@ -173,7 +180,7 @@ void Game::SetupScene(void){
     game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "SeamlessTorusMesh", "Combined", "Blocks");     
     game::SceneNode *sphere = CreateInstance("MySphere", "SphereMesh", "Sun", "Blocks");
     
-    game::SceneNode *floor = CreateInstance("Floor", "FlatSurface", "Checkers", "Blocks");   
+    game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "Checkers", "NormalMap");   
 
 	mytorus1->Translate(glm::vec3(3.0, 0.5, 0));
     mytorus1->Scale(glm::vec3(1.0, 1.0, 1.0));
@@ -187,7 +194,7 @@ void Game::SetupScene(void){
     sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
 
     floor->Rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-    floor->Translate(glm::vec3(0, -2.0, 0));
+    floor->Translate(glm::vec3(-50, -2.0, 50));
     floor->Scale(glm::vec3(100.0, 100.0, 100.0));
 
 	//game::SceneNode *mytorus = CreateInstance("MyTorus1", "SeamlessTorusMesh", "Lighting", "RockyTexture");
@@ -342,8 +349,8 @@ void Game::Controls(void)
     }
 
     // View control
-    float rot_factor(glm::pi<float>() / 720); // amount the ship turns per keypress
-    float trans_factor = 1.0; // amount the ship steps forward per keypress
+    float rot_factor(glm::pi<float>() / 360.0); // amount the ship turns per keypress
+    float trans_factor = 5.0; // amount the ship steps forward per keypress
     if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
         game->camera_.Pitch(rot_factor);
     }
