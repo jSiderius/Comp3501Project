@@ -8,6 +8,8 @@
 
 #include "resource_manager.h"
 #include "model_loader.h"
+#include "path_config.h"
+
 
 namespace game {
 
@@ -1097,17 +1099,19 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
 
     glm::vec3 midpoint = glm::vec3(length/2, width/2, 0);
 
-    std::vector<std::vector<int>> height_map = ReadHeightMap("C:\\Users\\Josh\\School\\Code\\COMP3501\\Project\\Project\\height_map.txt");
+    std::string material_directory_g = MATERIAL_DIRECTORY;
+
+    std::vector<std::vector<float>> height_map = ReadHeightMap(material_directory_g+"\\height_map.txt");
     for(int i = 0; i < num_length_samples; i++){
         for(int j = 0; j < num_width_samples; j++){
             vertex_normal = glm::vec3(0,0,1);
-            vertex_position = glm::vec3(static_cast<float>(i)* length/num_length_samples, static_cast<float>(j)*width/num_width_samples, -static_cast<float>(height_map[i][j])/15.0f); //distribution(gen));
+            vertex_position = glm::vec3(static_cast<float>(i)* length/num_length_samples, static_cast<float>(height_map[i][j]) / 15.0f, -static_cast<float>(j)*width/num_width_samples); //distribution(gen));
             // float distance = glm::length(vertex_position - midpoint);
             // vertex_position.z = distance/4;
 
             vertex_color = glm::vec3(1.0, 1.0, 1.0);
             // vertex_coord = glm::vec2(s,t);
-            vertex_coord = glm::vec2(static_cast<float>(i) / num_length_samples, static_cast<float>(j) / num_width_samples);
+            vertex_coord = glm::vec2((static_cast<float>(i) / num_length_samples)*10, (static_cast<float>(j) / num_width_samples)*10);
 
             int index = i*num_width_samples*vertex_att + j * vertex_att;
             for(int k = 0; k < 3; k++){
@@ -1170,8 +1174,8 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
     AddResource(Mesh, object_name, vbo, ebo, face_num * face_att);
 }
 
-std::vector<std::vector<int>> ResourceManager::ReadHeightMap(const std::string& filename){
-    std::vector<std::vector<int>> heightMap;
+std::vector<std::vector<float>> ResourceManager::ReadHeightMap(const std::string& filename){
+    std::vector<std::vector<float>> heightMap;
 
     std::ifstream file(filename);
     if(!file.is_open()){
@@ -1181,10 +1185,10 @@ std::vector<std::vector<int>> ResourceManager::ReadHeightMap(const std::string& 
 
     std::string line;
     while(std::getline(file, line)){
-        std::vector<int> row; 
+        std::vector<float> row;
         std::istringstream iss(line);
 
-        int value;
+        float value;
         while(iss >> value){
             row.push_back(value);
         }
