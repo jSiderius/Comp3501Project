@@ -46,6 +46,8 @@ namespace game {
 			// "Wall", a flat object
             void CreateWall(std::string object_name);
 
+            static std::vector<std::vector<float>> ReadHeightMap(const std::string& filename);
+
         private:
             // List storing all resources
             std::vector<Resource*> resource_; 
@@ -59,7 +61,7 @@ namespace game {
             void LoadTexture(const std::string name, const char *filename);
             // Loads a mesh in obj format
             void LoadMesh(const std::string name, const char *filename);
-            std::vector<std::vector<int>> ReadHeightMap(const std::string& filename);
+            
 
     }; // class ResourceManager
 

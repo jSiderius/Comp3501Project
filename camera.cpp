@@ -16,7 +16,30 @@ Camera::Camera(void){
 Camera::~Camera(){
 }
 
-void Camera::Update(void){
+void Camera::Update(std::vector<std::vector<float>> height_values){
+
+    float x = ((position_.x - floor_pos_.x) / (200.0 * floor_scale_.x) * 360);
+    float z = (-(position_.z - floor_pos_.z) / (200.0 * floor_scale_.z) * 360);
+
+    if ((360 > floor(x)) && (floor(x) >= 0) && (360 > floor(z)) && (floor(z) >= 0)) {
+
+        float a = height_values[floor(x)][ceil(z)];
+        float b = height_values[ceil(x)][ceil(z)];
+        float c = height_values[floor(x)][floor(z)];
+        float d = height_values[ceil(x)][floor(z)];
+
+        float s = x - floor(x);
+        float t = z - floor(z);
+
+        float height = (1 - t) * ((1 - s) * a + s * b) + (t * ((1 - s) * c + s * d));
+
+        height = 7.0 + floor_pos_.y + (height/15.0f) * floor_scale_.y;
+
+        position_ = glm::vec3(position_.x, height, position_.z);
+    }
+
+    //  (1-t)*( (1-s)*a+s*b)) + t*( (1-s)*c+s*d)
+
     // float trans_factor = 0.5;
     // Translate(GetForward()*trans_factor*speed_);
 }
@@ -47,6 +70,16 @@ void Camera::SetMaxSpeed(float max_speed){
     max_speed_ = max_speed;
 }
 
+void Camera::SetImpassableMap(std::vector<std::vector<bool>> impassable_map) {
+    impassable_map_ = impassable_map;
+}
+
+void Camera::SetFloorScale(glm::vec3 floor_scale) {
+    floor_scale_ = floor_scale;
+}
+void Camera::SetFloorPos(glm::vec3 floor_pos) {
+    floor_pos_ = floor_pos;
+}
 
 void Camera::SetPosition(glm::vec3 position){
     position_ = position;
@@ -59,7 +92,14 @@ void Camera::SetOrientation(glm::quat orientation){
 
 
 void Camera::Translate(glm::vec3 trans){
-    position_ += trans * speed_;
+    glm::vec3 temp_pos = position_ + (trans * speed_);
+
+    int x = floor(((temp_pos.x - floor_pos_.x) / (200.0 * floor_scale_.x) * 360));
+    int z = floor((-(temp_pos.z - floor_pos_.z) / (200.0 * floor_scale_.z) * 360));
+
+    if (impassable_map_[x][z]) {
+        position_ += trans * speed_;
+    }
     // std::cout<<speed_<<std::endl;
 }
 

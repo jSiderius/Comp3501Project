@@ -117,7 +117,7 @@ void Game::SetupResources(void){
 	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
-    resman_.CreateTerrain("TerrainMesh", 50.0, 50.0, 2000, 2000);
+    resman_.CreateTerrain("TerrainMesh", 200.0, 200.0, 360, 360);
 
     //RESOURCE MANAGER ADDS TO THE FILENAME STRING 
     // Load shader for texture mapping
@@ -193,9 +193,9 @@ void Game::SetupScene(void){
 
     sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
 
-    floor->Rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-    floor->Translate(glm::vec3(-200, -20.0, -800));
-    floor->Scale(glm::vec3(100.0, 100.0, 100.0));
+    //floor->Rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+    floor->Translate(glm::vec3(-400, 0, 400));
+    floor->Scale(glm::vec3(10.0, 10.0, 10.0));
 
 	//game::SceneNode *mytorus = CreateInstance("MyTorus1", "SeamlessTorusMesh", "Lighting", "RockyTexture");
 	//game::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
@@ -205,6 +205,15 @@ void Game::SetupScene(void){
 
 void Game::MainLoop(void){
 	float bleh = 0;
+    
+    SceneNode* floor = scene_.GetNode("Floor");
+
+    std::vector<std::vector<float>> height_map = ResourceManager::ReadHeightMap(material_directory_g+"\\height_map.txt");
+    std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
+    camera_.SetFloorPos(floor->GetPosition());
+    camera_.SetFloorScale(floor->GetScale());
+    camera_.SetImpassableMap(impassable_map);
+    
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
         // Animate the scene
@@ -216,11 +225,12 @@ void Game::MainLoop(void){
                 //scene_.Update();
 
                 // Animate the scene
+                /*
                 SceneNode *node1 = scene_.GetNode("MyTorus1");
                 SceneNode *node2 = scene_.GetNode("MyTorus2");
                 SceneNode *node3 = scene_.GetNode("MyTorus3");
                 SceneNode *node4 = scene_.GetNode("MySphere");
-                SceneNode *floor = scene_.GetNode("Floor");
+                
                 //				SceneNode *node = scene_.GetNode("Canvas");
 
 				glm::quat rotation = glm::angleAxis(0.95f*glm::pi<float>()/180.0f, glm::vec3(0.0, 1.0, 0.0));
@@ -231,10 +241,10 @@ void Game::MainLoop(void){
                 float theta = current_time/2;
                 float radius = 25.0f; 
                 node4->SetPosition(glm::vec3(radius*cos(theta), 0, radius*sin(theta)));
-
+                */
                 Controls();
                 // scene_.Update();
-                camera_.Update();
+                camera_.Update(height_map);
                 last_time = current_time;
             }
         }
@@ -393,6 +403,43 @@ void Game::Controls(void)
     }else{
         // camera_.SetSpeed(camera_.GetSpeed()*-trans_factor);
     }
+}
+
+std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std::vector<float>> height_values) {
+
+    std::vector<std::vector<bool>> impassableMap;
+
+    for (int i = 0; i < height_values.size(); i++) {
+        std::vector<bool> row;
+
+        for (int j = 0; j < height_values[i].size(); j++) {
+            if (i == 0 || i == height_values.size() - 1 || j == 0 || j == height_values[i].size() - 1) {
+                row.push_back(false);
+            }
+            else {
+
+                float a = height_values[i][j];
+                float b = height_values[i][j + 1];
+                float c = height_values[i + 1][j];
+                float d = height_values[i + 1][j + 1];
+
+                int threshold = 15;
+
+                if (abs(a - b) > threshold || abs(a - c) > threshold || abs(b - d) > threshold || abs(c - d) > threshold) {
+                    row.push_back(false);
+                }
+                else {
+                    row.push_back(true);
+                }
+            }
+        }
+
+        impassableMap.push_back(row);
+
+    }
+
+    return impassableMap;
+
 }
 
 
