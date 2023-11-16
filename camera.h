@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
+#include <vector>
 
 namespace game {
 
@@ -16,7 +16,7 @@ namespace game {
             Camera(void);
             ~Camera();
 
-            void Update(void);
+            void Update(std::vector<std::vector<float>> height_values);
 
             // Get global camera attributes
             glm::vec3 GetPosition(void) const;
@@ -26,6 +26,10 @@ namespace game {
             float GetMaxSpeed(void);
             void SetSpeed(float speed);
             void SetMaxSpeed(float max_speed);
+
+            void SetFloorScale(glm::vec3 floor_scale);
+            void SetFloorPos(glm::vec3 floor_pos);
+            void SetImpassableMap(std::vector<std::vector<bool>> impassable_map);
 
             // Set global camera attributes
             void SetPosition(glm::vec3 position);
@@ -62,6 +66,10 @@ namespace game {
             glm::vec3 side_; // Initial side vector
             glm::mat4 view_matrix_; // View matrix
             glm::mat4 projection_matrix_; // Projection matrix
+
+            glm::vec3 floor_scale_;
+            glm::vec3 floor_pos_;
+            std::vector<std::vector<bool>> impassable_map_;
 
             float max_speed_ = 0.6f;
             float speed_ = 0.5f;
