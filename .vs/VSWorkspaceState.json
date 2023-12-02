@@ -1,19 +1,19 @@
 {
-  "OutputFoldersPerTargetSystem": {
-    "Local Machine": [
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\build\\x86-Debug",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\install\\x86-Debug",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\build\\x86-Release",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\install\\x86-Release",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\build\\x64-Debug",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\install\\x64-Debug",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\build\\x64-Release",
-      "..\\..\\..\\CMakeBuilds\\95dc7c79-cfe6-4b98-b13f-610dc7695e92\\install\\x64-Release"
-    ]
-  },
   "ExpandedNodes": [
     ""
   ],
   "SelectedNode": "\\C:\\Users\\samdr\\source\\repos\\Comp3501Project",
-  "PreviewInSolutionExplorer": false
+  "PreviewInSolutionExplorer": false,
+  "OutputFoldersPerTargetSystem": {
+    "Local Machine": [
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\build\\x86-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\install\\x86-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\build\\x86-Release",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\install\\x86-Release",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\build\\x64-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\install\\x64-Debug",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\build\\x64-Release",
+      "..\\..\\..\\..\\..\\CMakeBuilds\\8890bd2c-e8c2-409d-bce8-37b12b6458cb\\install\\x64-Release"
+    ]
+  }
 }
