@@ -158,6 +158,10 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/moon.jpg");
 	resman_.LoadResource(Texture, "RockyTexture", filename.c_str());
 
+    // Load texture to be used on the object
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/stars.png");
+	resman_.LoadResource(Texture, "StaryTexture", filename.c_str());
+
 	// Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/download.jpg");
 	resman_.LoadResource(Texture, "WoodTexture", filename.c_str());
@@ -177,12 +181,13 @@ void Game::SetupScene(void){
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
 	
-	game::SceneNode *mytorus1 = CreateInstance("MyTorus1", "PlayerMesh", "Lighting", "RockyTexture"); 
-    game::SceneNode *mytorus2 = CreateInstance("MyTorus2", "PlayerMesh", "Checkers", "RockyTexture");    
-    game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "PlayerMesh", "Combined", "Blocks");     
+	game::SceneNode *mytorus1 = CreateInstance("MyTorus1", "SquareMesh", "Lighting", "RockyTexture"); 
+    game::SceneNode *mytorus2 = CreateInstance("MyTorus2", "SquareMesh", "Checkers", "RockyTexture");    
+    game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "SquareMesh", "Combined", "Blocks");     
     // game::SceneNode *sphere = CreateInstance("MySphere", "SphereMesh", "Sun", "Blocks");
     
     game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
+    game::SceneNode *skybox = CreateInstance("SkyBox", "SquareMesh", "TextureShader", "StaryTexture");
 
     CreatePlayer("Player", "PlayerMesh", "Checkers");  
 
@@ -194,6 +199,8 @@ void Game::SetupScene(void){
 
     mytorus3->Translate(glm::vec3(-1.5, 0, 0));
     mytorus3->Scale(glm::vec3(0.5, 0.5, 0.5));
+
+    skybox->Scale(glm::vec3(400.0, 400.0, 400.0));
 
     // sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
 
@@ -234,6 +241,7 @@ void Game::MainLoop(void){
                 SceneNode *node2 = scene_.GetNode("MyTorus2");
                 SceneNode *node3 = scene_.GetNode("MyTorus3");
                 SceneNode *node4 = scene_.GetNode("MySphere");
+                SceneNode *skybox = scene_.GetNode("SkyBox");
                 
                 //SceneNode *node = scene_.GetNode("Canvas");
 
@@ -249,6 +257,8 @@ void Game::MainLoop(void){
                 player_->Update(height_map);
                 camera_.SetPosition(player_->GetPosition() + offsetInWorldSpace);
                 camera_.SetOrientation(player_->GetOrientation());
+
+                skybox->SetPosition(player_->GetPosition());
 
                 last_time = current_time;
             }
@@ -420,12 +430,12 @@ void Game::Controls(void)
     // if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS){
     //     game->player_->Translate(-game->player_->GetUp()*trans_factor);
     // }
-    // if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
-    //     game->player_->Pitch(rot_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS){
-    //     game->player_->Pitch(-rot_factor);
-    // }
+    if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
+        game->player_->Pitch(rot_factor);
+    }
+    if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS){
+        game->player_->Pitch(-rot_factor);
+    }
     // if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS){
             // game->player_->Roll(rot_factor);
     //     
