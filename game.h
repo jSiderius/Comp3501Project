@@ -15,6 +15,7 @@
 #include "resource_manager.h"
 #include "camera.h"
 #include "asteroid.h"
+#include "player.h"
 
 namespace game {
 
@@ -58,6 +59,9 @@ namespace game {
             // Camera abstraction
             Camera camera_;
 
+            // Player abstraction
+            Player *player_;
+
             // Flag to turn animation on/off
             bool animating_;
 
@@ -75,6 +79,8 @@ namespace game {
             Asteroid *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name);
             // Create entire random asteroid field
             void CreateAsteroidField(int num_asteroids = 1500);
+            // Create the player
+            void CreatePlayer(std::string entity_name, std::string object_name, std::string material_name);
 
             // Create an instance of an object stored in the resource manager
             SceneNode *CreateInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name = std::string(""));

@@ -118,6 +118,8 @@ void Game::SetupResources(void){
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
     resman_.CreateTerrain("TerrainMesh", 200.0, 200.0, 360, 360);
+    resman_.CreateRectangle("PlayerMesh", 1.0, 0.5, 3.0);
+    resman_.CreateSquare("SquareMesh");
 
     //RESOURCE MANAGER ADDS TO THE FILENAME STRING 
     // Load shader for texture mapping
@@ -175,12 +177,14 @@ void Game::SetupScene(void){
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
 	
-	game::SceneNode *mytorus1 = CreateInstance("MyTorus1", "SeamlessTorusMesh", "Lighting", "RockyTexture"); 
-    game::SceneNode *mytorus2 = CreateInstance("MyTorus2", "SeamlessTorusMesh", "Checkers", "RockyTexture");    
-    game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "SeamlessTorusMesh", "Combined", "Blocks");     
-    game::SceneNode *sphere = CreateInstance("MySphere", "SphereMesh", "Sun", "Blocks");
+	game::SceneNode *mytorus1 = CreateInstance("MyTorus1", "PlayerMesh", "Lighting", "RockyTexture"); 
+    game::SceneNode *mytorus2 = CreateInstance("MyTorus2", "PlayerMesh", "Checkers", "RockyTexture");    
+    game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "PlayerMesh", "Combined", "Blocks");     
+    // game::SceneNode *sphere = CreateInstance("MySphere", "SphereMesh", "Sun", "Blocks");
     
-    game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture");   
+    game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
+
+    CreatePlayer("Player", "PlayerMesh", "Checkers");  
 
 	mytorus1->Translate(glm::vec3(3.0, 0.5, 0));
     mytorus1->Scale(glm::vec3(1.0, 1.0, 1.0));
@@ -191,7 +195,7 @@ void Game::SetupScene(void){
     mytorus3->Translate(glm::vec3(-1.5, 0, 0));
     mytorus3->Scale(glm::vec3(0.5, 0.5, 0.5));
 
-    sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
+    // sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
 
     //floor->Rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
     floor->Translate(glm::vec3(-400, 0, 400));
@@ -210,9 +214,9 @@ void Game::MainLoop(void){
 
     std::vector<std::vector<float>> height_map = ResourceManager::ReadHeightMap(material_directory_g+"\\height_map.txt");
     std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
-    camera_.SetFloorPos(floor->GetPosition());
-    camera_.SetFloorScale(floor->GetScale());
-    camera_.SetImpassableMap(impassable_map);
+    player_->SetFloorPos(floor->GetPosition());
+    player_->SetFloorScale(floor->GetScale());
+    player_->SetImpassableMap(impassable_map);
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
@@ -222,29 +226,30 @@ void Game::MainLoop(void){
             double current_time = glfwGetTime();
             if ((current_time - last_time) > 0.01)
 			{
-                //scene_.Update();
+                scene_.Update();
+                Controls();
 
                 // Animate the scene
-                /*
                 SceneNode *node1 = scene_.GetNode("MyTorus1");
                 SceneNode *node2 = scene_.GetNode("MyTorus2");
                 SceneNode *node3 = scene_.GetNode("MyTorus3");
                 SceneNode *node4 = scene_.GetNode("MySphere");
                 
-                //				SceneNode *node = scene_.GetNode("Canvas");
+                //SceneNode *node = scene_.GetNode("Canvas");
 
 				glm::quat rotation = glm::angleAxis(0.95f*glm::pi<float>()/180.0f, glm::vec3(0.0, 1.0, 0.0));
                 node1->Rotate(rotation);
                 node2->Rotate(-rotation);
                 node3->Rotate(rotation);
-                
-                float theta = current_time/2;
-                float radius = 25.0f; 
-                node4->SetPosition(glm::vec3(radius*cos(theta), 0, radius*sin(theta)));
-                */
-                Controls();
-                // scene_.Update();
-                camera_.Update(height_map);
+
+                glm::quat orientationMatrix = player_->GetOrientation();
+                glm::vec3 offsetInPlayerSpace = glm::vec3(0.2, 1.5, 15.0);
+                glm::vec3 offsetInWorldSpace = glm::vec3(orientationMatrix * glm::vec4(offsetInPlayerSpace, 0.0f));
+
+                player_->Update(height_map);
+                camera_.SetPosition(player_->GetPosition() + offsetInWorldSpace);
+                camera_.SetOrientation(player_->GetOrientation());
+
                 last_time = current_time;
             }
         }
@@ -317,6 +322,27 @@ void Game::CreateAsteroidField(int num_asteroids){
     }
 }
 
+void Game::CreatePlayer(std::string entity_name, std::string object_name, std::string material_name){
+    // Get resources
+    Resource *geom = resman_.GetResource(object_name);
+    if (!geom){
+        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
+    }
+
+    Resource *mat = resman_.GetResource(material_name);
+    if (!mat){
+        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
+    }
+
+    // Create asteroid instance
+    Player *player = new Player(entity_name, geom, mat);
+    scene_.AddNode(player);
+
+    player_ = player;
+
+    player_->SetView(camera_position_g, camera_look_at_g, camera_up_g); 
+}
+
 
 SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name){
 
@@ -361,48 +387,53 @@ void Game::Controls(void)
     // View control
     float rot_factor(glm::pi<float>() / 360.0); // amount the ship turns per keypress
     float trans_factor = 5.0; // amount the ship steps forward per keypress
-    if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
-        game->camera_.Pitch(rot_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS){
-        game->camera_.Pitch(-rot_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS){
-        game->camera_.Yaw(rot_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS){
-        game->camera_.Yaw(-rot_factor);
-    }
+    
     if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS){
-        game->camera_.Roll(rot_factor);
+        game->player_->Yaw(rot_factor);
     }
     if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS){
-        game->camera_.Roll(-rot_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_J) == GLFW_PRESS){
-        game->camera_.Translate(-game->camera_.GetSide()*trans_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS){
-        game->camera_.Translate(game->camera_.GetSide()*trans_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS){
-        game->camera_.Translate(game->camera_.GetUp()*trans_factor);
-    }
-    if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS){
-        game->camera_.Translate(-game->camera_.GetUp()*trans_factor);
+        game->player_->Yaw(-rot_factor);
     }
 
     float speed_factor = 0.0025f;
     if(glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS){
-        // camera_.SetSpeed(camera_.GetSpeed()+4.0f*speed_factor);
-        game->camera_.Translate(game->camera_.GetForward()*trans_factor);
+        // player_->SetSpeed(player_->GetSpeed()+4.0f*speed_factor);
+        game->player_->Translate(game->player_->GetForward()*trans_factor);
     }
     else if(glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS){
-        // camera_.SetSpeed(camera_.GetSpeed()-3.0f*speed_factor);
-        game->camera_.Translate(game->camera_.GetForward()*-trans_factor);
+        // player_->SetSpeed(player_->GetSpeed()-3.0f*speed_factor);
+        game->player_->Translate(game->player_->GetForward()*-trans_factor);
     }else{
-        // camera_.SetSpeed(camera_.GetSpeed()*-trans_factor);
+        // player_->SetSpeed(player_->GetSpeed()*-trans_factor);
     }
+
+    //DISABLED BECAUSE IT DOESNT MAKE SENSE IN THE GAME RIGHT NOW 
+    // if (glfwGetKey(window_, GLFW_KEY_J) == GLFW_PRESS){
+    //     game->player_->Translate(-game->player_->GetSide()*trans_factor);
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS){
+    //     game->player_->Translate(game->player_->GetSide()*trans_factor);
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS){
+    //     game->player_->Translate(game->player_->GetUp()*trans_factor);
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS){
+    //     game->player_->Translate(-game->player_->GetUp()*trans_factor);
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
+    //     game->player_->Pitch(rot_factor);
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS){
+    //     game->player_->Pitch(-rot_factor);
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS){
+            // game->player_->Roll(rot_factor);
+    //     
+    // }
+    // if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS){
+    //     
+    // game->player_->Roll(-rot_factor);
+    // }
 }
 
 std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std::vector<float>> height_values) {
