@@ -77,6 +77,7 @@ void Camera::SetImpassableMap(std::vector<std::vector<bool>> impassable_map) {
 void Camera::SetFloorScale(glm::vec3 floor_scale) {
     floor_scale_ = floor_scale;
 }
+
 void Camera::SetFloorPos(glm::vec3 floor_pos) {
     floor_pos_ = floor_pos;
 }
