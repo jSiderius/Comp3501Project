@@ -154,8 +154,6 @@ std::string ResourceManager::LoadTextFile(const char *filename){
     return content;
 }
 
-
-
 // Create the geometry for a cylinder
 void ResourceManager::CreateCylinder(std::string object_name, float height, float circle_radius, int num_height_samples, int num_circle_samples) {
 
@@ -902,28 +900,13 @@ void ResourceManager::CreateWall(std::string object_name){
 
     // Definition of the wall
     // The wall is simply a quad formed with two triangles
-    // GLfloat vertex[] = {
-    //     // Position, normal, color, texture coordinates
-    //     // Here, color stores the tangent of the vertex
-    //     -1.0, -1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
-    //     -1.0,  1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
-    //      1.0,  1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
-    //      1.0, -1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0};
-
-    float depth = 2.0;
     GLfloat vertex[] = {
         // Position, normal, color, texture coordinates
         // Here, color stores the tangent of the vertex
-        -1.0, -1.0, 0.0,  1.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
+        -1.0, -1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
         -1.0,  1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
          1.0,  1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
-         1.0, -1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0,
-
-        -2.0, -2.0, 10.8,  1.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
-        -2.0,  2.0, 10.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
-         2.0,  2.0, 10.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
-         2.0, -2.0, 10.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0
-    };
+         1.0, -1.0, 0.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0};
     GLuint face[] = {0, 2, 1,
                      0, 3, 2};
 
@@ -1003,7 +986,7 @@ void ResourceManager::CreateSeamlessTorus(std::string object_name, float loop_ra
 		
 			vertex_coord = glm::vec2(s, t); // good parameterization but seam at last triangle
 			// vertex_coord = glm::vec2(fabs(1-2*s),fabs(1-2*t)); // made seamless through mirroring
-//			vertex_coord = glm::vec2((rand() % 2000) / 2000.0, (rand() % 2000) / 2000.0);
+    //			vertex_coord = glm::vec2((rand() % 2000) / 2000.0, (rand() % 2000) / 2000.0);
             // Add vectors to the data buffer
             for (int k = 0; k < 3; k++){
                 vertex[(i*(num_circle_samples+1)+j)*vertex_att + k] = vertex_position[k];
@@ -1055,6 +1038,119 @@ void ResourceManager::CreateSeamlessTorus(std::string object_name, float loop_ra
     AddResource(Mesh, object_name, vbo, ebo, face_num * face_att);
 }
 
+void ResourceManager::CreateRectangle(std::string object_name, float length, float width, float height){
+    length = length / 2; 
+    height = height / 2;
+    width = width / 2; 
+   
+    // Definition of the wall
+    // The wall is simply a quad formed with two triangles
+    GLfloat vertex[] = {
+        // Position, normal, color, texture coordinates
+        // Here, color stores the tangent of the vertex
+        -length, -width, height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
+        -length,  width, height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
+         length,  width, height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
+         length, -width, height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0,
+         
+        -length, -width, -height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
+        -length,  width, -height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
+         length,  width, -height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
+         length, -width, -height,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0
+    };
+
+    GLuint face[] = {
+        // Front face
+        0, 1, 2,
+        0, 2, 3,
+        // Back face
+        4,5,6,
+        4,6,7,
+        // Left face
+        0,4,5,
+        0,5,1,
+        // Right face
+        3,6,7,
+        3,6,2,
+        // Top face
+        1,6,5,
+        1,6,2,
+        // Bottom face
+        0,7,4,
+        0,7,3
+    };
+
+    // Create OpenGL buffers and copy data
+    GLuint vbo, ebo;
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 8 * 11 * sizeof(GLfloat), vertex, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 3 * sizeof(GLuint), face, GL_STATIC_DRAW);
+ 
+    // 8 = vertex_num, 3 = vertex_att
+    // 2 = face_num, 3 = face_att
+    // Create resource
+    AddResource(Mesh, object_name, vbo, ebo, 12 * 3);
+}
+
+void ResourceManager::CreateSquare(std::string object_name){
+
+    // Definition of the wall
+    // The wall is simply a quad formed with two triangles
+    GLfloat vertex[] = {
+        // Position, normal, color, texture coordinates
+        // Here, color stores the tangent of the vertex
+        -1.0, -1.0, 1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
+        -1.0,  1.0, 1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
+         1.0,  1.0, 1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
+         1.0, -1.0, 1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0,
+         
+         -1.0, -1.0, -1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 0.0,
+         -1.0,  1.0, -1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  0.0, 1.0,
+         1.0,  1.0, -1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 1.0,
+         1.0, -1.0, -1.0,  0.0, 0.0,  1.0,  1.0, 0.0, 0.0,  1.0, 0.0};
+
+    GLuint face[] = {
+        // Front face
+        0, 1, 2,
+        0, 2, 3,
+        // Back face
+        4,5,6,
+        4,6,7,
+        // Left face
+        0,4,5,
+        0,5,1,
+        // Right face
+        3,6,7,
+        3,6,2,
+        // Top face
+        1,6,5,
+        1,6,2,
+        // Bottom face
+        0,7,4,
+        0,7,3
+    };
+
+    // Create OpenGL buffers and copy data
+    GLuint vbo, ebo;
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 8 * 11 * sizeof(GLfloat), vertex, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 3 * sizeof(GLuint), face, GL_STATIC_DRAW);
+ 
+    // 8 = vertex_num, 3 = vertex_att
+    // 2 = face_num, 3 = face_att
+    // Create resource
+    AddResource(Mesh, object_name, vbo, ebo, 12 * 3);
+}
 
 void ResourceManager::CreateTerrain(std::string object_name, float length, float width, int num_length_samples, int num_width_samples){
 
