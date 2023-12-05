@@ -155,8 +155,12 @@ void Game::SetupResources(void){
 	resman_.LoadResource(Material, "Combined", filename.c_str());
 
 	// Load texture to be used on the object
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/moon.jpg");
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/mars.jpg");
 	resman_.LoadResource(Texture, "RockyTexture", filename.c_str());
+
+    // Load texture to be used on the object
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/robot.jpg");
+	resman_.LoadResource(Texture, "RobotTexture", filename.c_str());
 
     // Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/stars.png");
@@ -189,7 +193,7 @@ void Game::SetupScene(void){
     game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
     game::SceneNode *skybox = CreateInstance("SkyBox", "SquareMesh", "TextureShader", "StaryTexture");
 
-    CreatePlayer("Player", "PlayerMesh", "Checkers");  
+    CreatePlayer("Player", "PlayerMesh", "TextureShader", "RobotTexture");  
 
 	mytorus1->Translate(glm::vec3(3.0, 0.5, 0));
     mytorus1->Scale(glm::vec3(1.0, 1.0, 1.0));
@@ -332,7 +336,7 @@ void Game::CreateAsteroidField(int num_asteroids){
     }
 }
 
-void Game::CreatePlayer(std::string entity_name, std::string object_name, std::string material_name){
+void Game::CreatePlayer(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name){
     // Get resources
     Resource *geom = resman_.GetResource(object_name);
     if (!geom){
@@ -344,8 +348,16 @@ void Game::CreatePlayer(std::string entity_name, std::string object_name, std::s
         throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
     }
 
+    Resource *tex = NULL;
+    if (texture_name != ""){
+        tex = resman_.GetResource(texture_name);
+        if (!tex){
+            throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
+        }
+    }
+
     // Create asteroid instance
-    Player *player = new Player(entity_name, geom, mat);
+    Player *player = new Player(entity_name, geom, mat, tex);
     scene_.AddNode(player);
 
     player_ = player;
