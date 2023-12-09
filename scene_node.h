@@ -37,10 +37,12 @@ namespace game {
             void SetPosition(glm::vec3 position);
             void SetOrientation(glm::quat orientation);
             void SetScale(glm::vec3 scale);
+
+            virtual void print(void);
             
             // Perform transformations on node
-            void Translate(glm::vec3 trans);
-            void Rotate(glm::quat rot);
+            virtual void Translate(glm::vec3 trans);
+            virtual void Rotate(glm::quat rot);
             void Scale(glm::vec3 scale);
 
             // Draw the node according to scene parameters in 'camera'
