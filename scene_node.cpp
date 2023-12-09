@@ -250,4 +250,7 @@ void SceneNode::SetupShader(GLuint program){
 
 }
 
+void SceneNode::print(void){
+    std::cout<<name_<<std::endl;
+}
 } // namespace game;
