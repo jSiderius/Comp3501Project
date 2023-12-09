@@ -83,8 +83,12 @@ void SceneGraph::Draw(Camera *camera){
                  background_color_[2], 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    std::string prefix1 = "Wheel";
+    std::string prefix2 = "Antenna";
     // Draw all scene nodes
     for (int i = 0; i < node_.size(); i++){
+        if (node_[i]->GetName().compare(0, prefix1.length(), prefix1) == 0) { continue; }
+        if (node_[i]->GetName().compare(0, prefix2.length(), prefix2) == 0) { continue; }
         node_[i]->Draw(camera);
     }
 }

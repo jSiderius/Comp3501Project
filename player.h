@@ -19,7 +19,7 @@ namespace game {
 
         public:
             // Create asteroid from given resources
-            Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture);
+            Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, SceneNode **wheels, int num_wheels, SceneNode **antennas, int num_antennas);
 
             // Destructor
             ~Player();
@@ -44,6 +44,9 @@ namespace game {
             void SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up);
 
             void Update(std::vector<std::vector<float>> height_values);
+            void Translate(glm::vec3 trans) override;
+
+            void Draw(Camera *camera) override;
 
             
         private:
@@ -57,6 +60,13 @@ namespace game {
             glm::vec3 floor_scale_;
             glm::vec3 floor_pos_;
             std::vector<std::vector<bool>> impassable_map_;
+            
+            int num_wheels_;
+            int num_antennas_;
+            SceneNode **wheels_;
+            SceneNode **antennas_;
+            glm::vec3 *offsets_;
+            
     }; // class Player
 
 } // namespace game

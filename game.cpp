@@ -121,6 +121,9 @@ void Game::SetupResources(void){
     resman_.CreateRectangle("PlayerMesh", 1.0, 0.5, 3.0);
     resman_.CreateSquare("SquareMesh");
 
+    resman_.CreateCylinder("AntennaCylinderMesh", 1.0, 0.025, 30, 30);
+    resman_.CreateSeamlessTorus("AntennaTorusMesh", 0.1, 0.05, 80, 80);
+
     //RESOURCE MANAGER ADDS TO THE FILENAME STRING 
     // Load shader for texture mapping
 	std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material"); //SO /textured_material_fp.glsl, /textured_material_vp.glsl ... 
@@ -166,9 +169,17 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/stars.png");
 	resman_.LoadResource(Texture, "StaryTexture", filename.c_str());
 
+    // Load texture to be used on the object
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/tire.png");
+	resman_.LoadResource(Texture, "TireTexture", filename.c_str());
+
 	// Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/download.jpg");
 	resman_.LoadResource(Texture, "WoodTexture", filename.c_str());
+
+    // Load texture to be used on the object
+	filename = std::string(MATERIAL_DIRECTORY) + std::string("/metal.png");
+	resman_.LoadResource(Texture, "MetalTexture", filename.c_str());
 
     // Load texture to be used in normal mapping
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map2.png");
@@ -193,7 +204,7 @@ void Game::SetupScene(void){
     game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
     game::SceneNode *skybox = CreateInstance("SkyBox", "SquareMesh", "TextureShader", "StaryTexture");
 
-    CreatePlayer("Player", "PlayerMesh", "TextureShader", "RobotTexture");  
+    CreatePlayer("Player", "PlayerMesh", "TextureShader", "MetalTexture");  
 
 	mytorus1->Translate(glm::vec3(3.0, 0.5, 0));
     mytorus1->Scale(glm::vec3(1.0, 1.0, 1.0));
@@ -356,8 +367,20 @@ void Game::CreatePlayer(std::string entity_name, std::string object_name, std::s
         }
     }
 
-    // Create asteroid instance
-    Player *player = new Player(entity_name, geom, mat, tex);
+    const int num_wheels = 6;
+    SceneNode* wheels[num_wheels];
+    for(int i = 0; i < num_wheels; i++){
+        std::stringstream ss;
+        ss << "Wheel" << i;
+        wheels[i] = CreateInstance(ss.str(), "SphereMesh", "TextureShader", "TireTexture");
+        wheels[i]->Scale(glm::vec3(0.3, 0.3, 0.3));
+    }
+
+    SceneNode* antennas[2];
+    antennas[0] = CreateInstance("Antenna1", "AntennaCylinderMesh", "TextureShader", "MetalTexture");
+    antennas[1] = CreateInstance("Antenna2", "AntennaTorusMesh", "TextureShader", "MetalTexture");
+
+    Player *player = new Player(entity_name, geom, mat, tex, wheels, num_wheels, antennas, 2);
     scene_.AddNode(player);
 
     player_ = player;
