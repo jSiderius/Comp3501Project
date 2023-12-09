@@ -1152,16 +1152,14 @@ void ResourceManager::CreateSquare(std::string object_name){
     AddResource(Mesh, object_name, vbo, ebo, 12 * 3);
 }
 
-void ResourceManager::CreateTerrain(std::string object_name, float length, float width, int num_length_samples, int num_width_samples){
+void ResourceManager::CreateTerrain(std::string object_name, float length, float width){
 
-    // Create a torus
-    // The torus is built from a large loop with small circles around the loop
+    std::string material_directory_g = MATERIAL_DIRECTORY;
+    std::vector<std::vector<float>> height_map = ReadHeightMap(material_directory_g+"\\height_map.txt");
 
     // Number of vertices and faces to be created
-    // Check the construction algorithm below to understand the numbers
-    // specified below
-    const GLuint vertex_num = num_length_samples*num_width_samples;//(num_length_samples+1)*(num_width_samples+1);
-    const GLuint face_num = num_length_samples*num_width_samples*2;
+    const GLuint vertex_num = height_map.size()*height_map[0].size();//(height_map.size()+1)*(height_map[0].size()+1);
+    const GLuint face_num = height_map.size()*height_map[0].size()*2;
 
     // Number of attributes for vertices and faces
     const int vertex_att = 11;
@@ -1195,23 +1193,20 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
 
     glm::vec3 midpoint = glm::vec3(length/2, width/2, 0);
 
-    std::string material_directory_g = MATERIAL_DIRECTORY;
-
-    std::vector<std::vector<float>> height_map = ReadHeightMap(material_directory_g+"\\height_map.txt");
-    for(int i = 0; i < num_length_samples; i++){
-        for(int j = 0; j < num_width_samples; j++){
+    for(int i = 0; i < height_map.size(); i++){
+        for(int j = 0; j < height_map[0].size(); j++){
             vertex_normal = glm::vec3(0,0,1);
-            vertex_position = glm::vec3(static_cast<float>(i)* length/num_length_samples, static_cast<float>(height_map[i][j]) / 15.0f, -static_cast<float>(j)*width/num_width_samples); //distribution(gen));
+            vertex_position = glm::vec3(static_cast<float>(i)* length/height_map.size(), static_cast<float>(height_map[i][j]) / 15.0f, -static_cast<float>(j)*width/height_map[0].size()); //distribution(gen));
             // float distance = glm::length(vertex_position - midpoint);
             // vertex_position.z = distance/4;
 
             vertex_color = glm::vec3(1.0, 1.0, 1.0);
             // vertex_coord = glm::vec2(s,t);
-            vertex_coord = glm::vec2((static_cast<float>(i) / num_length_samples)*10, (static_cast<float>(j) / num_width_samples)*10);
+            vertex_coord = glm::vec2((static_cast<float>(i) / height_map.size())*10, (static_cast<float>(j) / height_map[0].size())*10);
 
-            int index = i*num_width_samples*vertex_att + j * vertex_att;
+            int index = i*height_map[0].size()*vertex_att + j * vertex_att;
             for(int k = 0; k < 3; k++){
-                vertex[index + k] = vertex_position[k]; //num_length_samples + 1 ? 
+                vertex[index + k] = vertex_position[k]; //height_map.size() + 1 ? 
                 vertex[index + k + 3] = vertex_normal[k];
                 vertex[index + k + 6] = vertex_color[k];
             }
@@ -1219,28 +1214,28 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
             vertex[index + 10] = vertex_coord[1];
         }
     }
-    // for(int i = 0; i < num_length_samples; i++){
-    //     for(int j = 0; j < num_width_samples; j++){
+    // for(int i = 0; i < height_map.size(); i++){
+    //     for(int j = 0; j < height_map[0].size(); j++){
     //         std::cout<<"i: " << i << " j: "<< j << " [";
     //         for(int k = 0; k < vertex_att; k++){
-    //             std::cout<<vertex[i*vertex_att*num_width_samples + j*vertex_att + k]<<" ";
+    //             std::cout<<vertex[i*vertex_att*height_map[0].size() + j*vertex_att + k]<<" ";
     //         }std::cout<<"]"<<std::endl;
     //     }
     // }
 
-    for(int i = 0; i < num_length_samples- 1; i++){
-        for(int j = 0; j < num_width_samples -1; j++){
-            glm::vec3 t1(i * num_width_samples + j,
-                     i * num_width_samples + (j + 1),
-                     (i + 1) * num_width_samples + j);
+    for(int i = 0; i < height_map.size()- 1; i++){
+        for(int j = 0; j < height_map[0].size() -1; j++){
+            glm::vec3 t1(i * height_map[0].size() + j,
+                     i * height_map[0].size() + (j + 1),
+                     (i + 1) * height_map[0].size() + j);
 
-            glm::vec3 t2(i * num_width_samples + (j + 1),
-                        (i + 1) * num_width_samples + (j + 1),
-                        (i + 1) * num_width_samples + j);
+            glm::vec3 t2(i * height_map[0].size() + (j + 1),
+                        (i + 1) * height_map[0].size() + (j + 1),
+                        (i + 1) * height_map[0].size() + j);
             // Add two triangles to the data buffer
             for (int k = 0; k < 3; k++){
-                face[(i*(num_width_samples)+j)*face_att*2 + k] = static_cast<GLuint>(t1[k]);
-                face[(i*(num_width_samples)+j)*face_att*2 + k + face_att] = static_cast<GLuint>(t2[k]);
+                face[(i*(height_map[0].size())+j)*face_att*2 + k] = static_cast<GLuint>(t1[k]);
+                face[(i*(height_map[0].size())+j)*face_att*2 + k + face_att] = static_cast<GLuint>(t2[k]);
             }
         }
     }
@@ -1286,6 +1281,9 @@ std::vector<std::vector<float>> ResourceManager::ReadHeightMap(const std::string
 
         float value;
         while(iss >> value){
+            if(value == 0){
+                value = 0.1;
+            }
             row.push_back(value);
         }
 

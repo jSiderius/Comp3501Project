@@ -65,6 +65,10 @@ namespace game {
             // Flag to turn animation on/off
             bool animating_;
 
+            //height map length and width
+            float length_ = 2000;
+            float width_ = 2000;
+
             // Methods to initialize the game
             void InitWindow(void);
             void InitView(void);
