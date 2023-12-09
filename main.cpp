@@ -17,6 +17,8 @@
 
 // Main function that builds and runs the game
 int main(void){
+
+
     game::Game app; // Game application
 
     try {
@@ -33,6 +35,9 @@ int main(void){
     catch (std::exception &e){
         PrintException(e);
     }
+
+
+    
 
     return 0;
 }

@@ -117,7 +117,7 @@ void Game::SetupResources(void){
 	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
-    resman_.CreateTerrain("TerrainMesh", 200.0, 200.0, 360, 360);
+    resman_.CreateTerrain("TerrainMesh", length_, width_);
     resman_.CreateRectangle("PlayerMesh", 1.0, 0.5, 3.0);
     resman_.CreateSquare("SquareMesh");
 
@@ -235,10 +235,10 @@ void Game::MainLoop(void){
     SceneNode* floor = scene_.GetNode("Floor");
 
     std::vector<std::vector<float>> height_map = ResourceManager::ReadHeightMap(material_directory_g+"\\height_map.txt");
-    std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
+    // std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
     player_->SetFloorPos(floor->GetPosition());
     player_->SetFloorScale(floor->GetScale());
-    player_->SetImpassableMap(impassable_map);
+    // player_->SetImpassableMap(impassable_map);
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
@@ -269,7 +269,7 @@ void Game::MainLoop(void){
                 glm::vec3 offsetInPlayerSpace = glm::vec3(0.2, 1.5, 15.0);
                 glm::vec3 offsetInWorldSpace = glm::vec3(orientationMatrix * glm::vec4(offsetInPlayerSpace, 0.0f));
 
-                player_->Update(height_map);
+                player_->Update(height_map, length_, width_);
                 camera_.SetPosition(player_->GetPosition() + offsetInWorldSpace);
                 camera_.SetOrientation(player_->GetOrientation());
 
