@@ -12,9 +12,10 @@ def read_png(file_path):
             arr.append([])
             for x in range(width):
                 # Get the RGB values of the pixel
-                pixel_color = img.getpixel((x, y))
+                pixel_intensity = img.getpixel((x, y))[0]
 
-                temp_height = ((pixel_color[0] + pixel_color[1] + pixel_color[2])/765)*5
+                # temp_height = ((pixel_color[0] + pixel_color[1] + pixel_color[2])/765)*5
+                temp_height = (255 - pixel_intensity) / 255.0 * 150; 
                 arr[y].append(temp_height)
                 
                 # Print the color of the pixel
@@ -33,7 +34,7 @@ def save_to_text_file(matrix, file_path):
 
 
 if __name__ == "__main__":
-    #image_path = "moon.jpg"
-    image_path = "map2.png"
+    # image_path = "map3.jpg"
+    image_path = "map4.png"
     
     read_png(image_path)

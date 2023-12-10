@@ -1,15 +1,19 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#define GLEW_STATIC
+
 #include <exception>
 #include <string>
-#define GLEW_STATIC
+#include <iostream>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/Noise.hpp>
-#include <iostream>
-
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <SOIL/SOIL.h>
 
 #include "scene_graph.h"
 #include "resource_manager.h"
@@ -65,11 +69,30 @@ namespace game {
             // Flag to turn animation on/off
             bool animating_;
 
+            bool pre_game = true;
+            bool post_game = false; 
+
+            //height map length and width
+            float length_ = 2000;
+            float width_ = 2000;
+
+            GLuint programID3D;
+            GLuint programID2D;
+
+            GLuint textureID;
+
             // Methods to initialize the game
             void InitWindow(void);
             void InitView(void);
             void InitEventHandlers(void);
- 
+            void Init2D(void);
+
+            void Render2DOverlay(void);
+            void RenderText(const char* text, float x, float y, float scale);
+            void RenderPreGameMenu(void);
+            void RenderPostGameMenu(void);
+            void RenderPNG();
+
             // Methods to handle events
             static void ResizeCallback(GLFWwindow* window, int width, int height);
             void Controls(void);

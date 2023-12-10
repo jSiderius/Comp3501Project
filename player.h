@@ -43,7 +43,7 @@ namespace game {
             glm::vec3 GetUp(void) const;
             void SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up);
 
-            void Update(std::vector<std::vector<float>> height_values);
+            void Update(std::vector<std::vector<float>> height_values, float length, float width);
             void Translate(glm::vec3 trans) override;
 
             void Draw(Camera *camera) override;
