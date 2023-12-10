@@ -124,6 +124,7 @@ void Player::SetView(glm::vec3 position, glm::vec3 look_at, glm::vec3 up){
     orientation_ = glm::quat();
 }
 
+<<<<<<< HEAD
 void Player::Update(std::vector<std::vector<float>> height_values, float length, float width){
 
     int length_count = height_values.size();
@@ -133,6 +134,15 @@ void Player::Update(std::vector<std::vector<float>> height_values, float length,
     float z = (-(position.z - floor_pos_.z) / (width * floor_scale_.z) * width_count);
 
     if ((length_count > floor(x)) && (floor(x) >= 0) && (width_count > floor(z)) && (floor(z) >= 0)) {
+=======
+void Player::Update(std::vector<std::vector<float>> height_values){
+
+    glm::vec3 position = GetPosition();
+    float x = ((position.x - floor_pos_.x) / (200.0 * floor_scale_.x) * 360);
+    float z = (-(position.z - floor_pos_.z) / (200.0 * floor_scale_.z) * 360);
+
+    if ((360 > floor(x)) && (floor(x) >= 0) && (360 > floor(z)) && (floor(z) >= 0)) {
+>>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
 
         float a = height_values[floor(x)][ceil(z)];
         float b = height_values[ceil(x)][ceil(z)];

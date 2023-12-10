@@ -10,7 +10,11 @@ set(HDRS
 )
  
 set(SRCS
+<<<<<<< HEAD
     combined_fp.glsl combined_vp.glsl title_screen.h title_screen.cpp asteroid.cpp camera.cpp game.cpp main.cpp player.cpp player.h resource.cpp resource_manager.cpp scene_graph.cpp scene_node.cpp sun_fp.glsl normal_map_vp.glsl normal_map_fp.glsl sun_vp.glsl textured_material_fp.glsl textured_material_vp.glsl procedural_vp.glsl procedural_fp.glsl
+=======
+    combined_fp.glsl combined_vp.glsl asteroid.cpp camera.cpp game.cpp main.cpp player.cpp player.h resource.cpp resource_manager.cpp scene_graph.cpp scene_node.cpp sun_fp.glsl normal_map_vp.glsl normal_map_fp.glsl sun_vp.glsl textured_material_fp.glsl textured_material_vp.glsl procedural_vp.glsl procedural_fp.glsl
+>>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
 )
 
 
