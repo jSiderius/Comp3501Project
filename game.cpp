@@ -42,11 +42,7 @@ void Game::Init(void){
     InitWindow();
     InitView();
     InitEventHandlers();
-<<<<<<< HEAD
     Init2D();
-=======
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
-
     // Set variables
     animating_ = true;
 }
@@ -82,7 +78,6 @@ void Game::InitWindow(void){
     }
 }
 
-<<<<<<< HEAD
 void Game::Init2D(void){
     const char* vertexShaderCode2D = R"(
         #version 330 core
@@ -145,8 +140,6 @@ void Game::Init2D(void){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
-=======
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
 
 void Game::InitView(void){
 
@@ -167,10 +160,6 @@ void Game::InitView(void){
     camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
 void Game::InitEventHandlers(void){
 
     // Set event callbacks
@@ -180,7 +169,6 @@ void Game::InitEventHandlers(void){
     glfwSetWindowUserPointer(window_, (void *) this);
 }
 
-<<<<<<< HEAD
 void Game::Render2DOverlay(void){
     // Set up 2D rendering, using orthographic projection
     glDisable(GL_DEPTH_TEST);
@@ -451,8 +439,6 @@ void Game::RenderText(const char* text, float x, float y, float scale) {
     }
 }
 
-=======
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
 
 void Game::SetupResources(void){
 
@@ -462,11 +448,7 @@ void Game::SetupResources(void){
 	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
 	resman_.CreateWall("FlatSurface");
 	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
-<<<<<<< HEAD
     resman_.CreateTerrain("TerrainMesh", length_, width_);
-=======
-    resman_.CreateTerrain("TerrainMesh", 200.0, 200.0, 360, 360);
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
     resman_.CreateRectangle("PlayerMesh", 1.0, 0.5, 3.0);
     resman_.CreateSquare("SquareMesh");
 
@@ -584,26 +566,15 @@ void Game::MainLoop(void){
     SceneNode* floor = scene_.GetNode("Floor");
 
     std::vector<std::vector<float>> height_map = ResourceManager::ReadHeightMap(material_directory_g+"\\height_map.txt");
-<<<<<<< HEAD
     // std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
     player_->SetFloorPos(floor->GetPosition());
     player_->SetFloorScale(floor->GetScale());
     // player_->SetImpassableMap(impassable_map);
-=======
-    std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
-    player_->SetFloorPos(floor->GetPosition());
-    player_->SetFloorScale(floor->GetScale());
-    player_->SetImpassableMap(impassable_map);
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
         // Animate the scene
-<<<<<<< HEAD
         if (animating_ &! pre_game){
-=======
-        if (animating_){
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
             static double last_time = 0;
             double current_time = glfwGetTime();
             if ((current_time - last_time) > 0.01)
@@ -629,11 +600,7 @@ void Game::MainLoop(void){
                 glm::vec3 offsetInPlayerSpace = glm::vec3(0.2, 1.5, 15.0);
                 glm::vec3 offsetInWorldSpace = glm::vec3(orientationMatrix * glm::vec4(offsetInPlayerSpace, 0.0f));
 
-<<<<<<< HEAD
                 player_->Update(height_map, length_, width_);
-=======
-                player_->Update(height_map);
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
                 camera_.SetPosition(player_->GetPosition() + offsetInWorldSpace);
                 camera_.SetOrientation(player_->GetOrientation());
 
@@ -646,7 +613,6 @@ void Game::MainLoop(void){
         // Draw the scene
         scene_.Draw(&camera_);
 
-<<<<<<< HEAD
         if(pre_game){ 
             RenderPreGameMenu(); 
             Controls();
@@ -654,8 +620,6 @@ void Game::MainLoop(void){
             Render2DOverlay();
         }
             
-=======
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
         // Push buffer drawn in the background onto the display
         glfwSwapBuffers(window_);
 
@@ -789,14 +753,11 @@ SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name
 
 void Game::Controls(void)
 {
-<<<<<<< HEAD
     if (glfwGetKey(window_, GLFW_KEY_ENTER) == GLFW_PRESS){
         pre_game = false;
     }
     if(pre_game){ return; }
     
-=======
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
      // Get user data with a pointer to the game class
     void* ptr = glfwGetWindowUserPointer(window_);
     Game *game = (Game *) ptr;
