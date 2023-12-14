@@ -35,6 +35,6 @@ def save_to_text_file(matrix, file_path):
 
 if __name__ == "__main__":
     # image_path = "map3.jpg"
-    image_path = "map4.png"
+    image_path = "map3.jpg"
     
     read_png(image_path)

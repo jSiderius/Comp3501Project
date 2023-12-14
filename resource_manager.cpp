@@ -1196,7 +1196,7 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
     for(int i = 0; i < height_map.size(); i++){
         for(int j = 0; j < height_map[0].size(); j++){
             vertex_normal = glm::vec3(0,0,1);
-            vertex_position = glm::vec3(static_cast<float>(i)* length/height_map.size(), static_cast<float>(height_map[i][j]) / 15.0f, -static_cast<float>(j)*width/height_map[0].size()); //distribution(gen));
+            vertex_position = glm::vec3(static_cast<float>(i)* length/height_map.size(), static_cast<float>(height_map[i][j])/5.0f, -static_cast<float>(j)*width/height_map[0].size()); //distribution(gen));
             // float distance = glm::length(vertex_position - midpoint);
             // vertex_position.z = distance/4;
 
@@ -1214,14 +1214,6 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
             vertex[index + 10] = vertex_coord[1];
         }
     }
-    // for(int i = 0; i < height_map.size(); i++){
-    //     for(int j = 0; j < height_map[0].size(); j++){
-    //         std::cout<<"i: " << i << " j: "<< j << " [";
-    //         for(int k = 0; k < vertex_att; k++){
-    //             std::cout<<vertex[i*vertex_att*height_map[0].size() + j*vertex_att + k]<<" ";
-    //         }std::cout<<"]"<<std::endl;
-    //     }
-    // }
 
     for(int i = 0; i < height_map.size()- 1; i++){
         for(int j = 0; j < height_map[0].size() -1; j++){
@@ -1239,14 +1231,6 @@ void ResourceManager::CreateTerrain(std::string object_name, float length, float
             }
         }
     }
-
-    // std::vector<std::vector<int>> heightMap = ReadHeightMap("C:\\Users\\Josh\\School\\Code\\COMP3501\\Project\\Project\\height_map.txt");
-    // for (const auto& row : heightMap){
-    //     for(int value : row){
-    //         std::cout << value << " ";
-    //     }
-    //         std::cout << std::endl;
-    // }
 
     GLuint vbo, ebo;
     glGenBuffers(1, &vbo);
@@ -1281,9 +1265,6 @@ std::vector<std::vector<float>> ResourceManager::ReadHeightMap(const std::string
 
         float value;
         while(iss >> value){
-            if(value == 0){
-                value = 0.1;
-            }
             row.push_back(value);
         }
 

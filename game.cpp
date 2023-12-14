@@ -566,15 +566,15 @@ void Game::MainLoop(void){
     SceneNode* floor = scene_.GetNode("Floor");
 
     std::vector<std::vector<float>> height_map = ResourceManager::ReadHeightMap(material_directory_g+"\\height_map.txt");
-    // std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
+    std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
     player_->SetFloorPos(floor->GetPosition());
     player_->SetFloorScale(floor->GetScale());
-    // player_->SetImpassableMap(impassable_map);
+    player_->SetImpassableMap(impassable_map);
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
         // Animate the scene
-        if (animating_ &! pre_game){
+        if (animating_ && !pre_game){
             static double last_time = 0;
             double current_time = glfwGetTime();
             if ((current_time - last_time) > 0.01)
@@ -718,7 +718,7 @@ void Game::CreatePlayer(std::string entity_name, std::string object_name, std::s
     antennas[0] = CreateInstance("Antenna1", "AntennaCylinderMesh", "TextureShader", "MetalTexture");
     antennas[1] = CreateInstance("Antenna2", "AntennaTorusMesh", "TextureShader", "MetalTexture");
 
-    Player *player = new Player(entity_name, geom, mat, tex, wheels, num_wheels, antennas, 2);
+    Player *player = new Player(entity_name, geom, mat, tex, wheels, num_wheels, antennas, 2, length_, width_);
     scene_.AddNode(player);
 
     player_ = player;

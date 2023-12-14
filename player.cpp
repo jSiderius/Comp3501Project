@@ -2,15 +2,17 @@
 
 namespace game {
 
-Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, SceneNode **wheels, int num_wheels, SceneNode **antennas, int num_antennas) : SceneNode(name, geometry, material, texture) {
+Player::Player(const std::string name, const Resource *geometry, const Resource *material, const Resource *texture, SceneNode **wheels, int num_wheels, SceneNode **antennas, int num_antennas, float floor_length, float floor_width) : SceneNode(name, geometry, material, texture) {
     num_wheels_ = num_wheels;
     num_antennas_ = num_antennas;
 
     wheels_ = new SceneNode*[num_wheels_];
     antennas_ = new SceneNode*[num_antennas_];
-    offsets_ = new glm::vec3[num_wheels];
+    offsets_ = new glm::vec3[(num_wheels_ + num_antennas_)];
 
-    
+    floor_length_ = floor_length;
+    floor_width_ = floor_width;
+
     for (int i = 0; i < num_wheels_; i++){
         wheels_[i] = wheels[i];
     }
@@ -47,14 +49,17 @@ void Player::SetAngM(glm::quat angm){
 void Player::Translate(glm::vec3 trans){
     for (int i = 0; i < num_wheels_; i++){
         wheels_[i]->Rotate(glm::angleAxis(0.05f, glm::vec3(GetOrientation() * glm::vec4(offsets_[i], 0.0f))));
-
-        // glm::vec3 offsetInWorldSpace = );
-        // wheels_[i]->SetPosition(GetPosition() + offsetInWorldSpace);
-        // wheels_[i]->Draw(camera);
     }
 
+    glm::vec3 temp_pos = SceneNode::GetPosition() + trans;
+
+    int x = floor(((temp_pos.x - floor_pos_.x) / (floor_length_ * floor_scale_.x) * impassable_map_.size()));
+    int z = floor((-(temp_pos.z - floor_pos_.z) / (floor_width_ * floor_scale_.z) * impassable_map_[0].size()));
+
+    if (impassable_map_[x][z]) {
     SceneNode::Translate(trans);
-    Update();
+    }
+
 }
 
 void Player::Update(void){
@@ -144,7 +149,7 @@ void Player::Update(std::vector<std::vector<float>> height_values, float length,
 
         float height = (1 - t) * ((1 - s) * a + s * b) + (t * ((1 - s) * c + s * d));
 
-        height = 7.0 + floor_pos_.y + (height/15.0f) * floor_scale_.y;
+        height = 7.0 + floor_pos_.y + (height/5.0f) * floor_scale_.y;
 
         SetPosition(glm::vec3(position.x, height, position.z));
     }
