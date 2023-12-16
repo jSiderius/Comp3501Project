@@ -21,6 +21,9 @@ void Orb::SetAngM(glm::quat angm){
     angm_ = angm;
 }
 
+void Orb::SetRadius(float radius){
+    radius_ = radius;
+}
 
 void Orb::Update(void){
 
@@ -56,6 +59,13 @@ void Orb::Update(std::vector<std::vector<float>> height_values, float length, fl
 
     // float trans_factor = 0.5;
     // Translate(GetForward()*trans_factor*speed_);
+}
+
+bool Orb::Colliding(glm::vec3 position, float radius){
+    if(glm::distance(position, GetPosition()) < radius + radius_){
+        return true; 
+    }
+    return false;
 }
 
 void Orb::SetImpassableMap(std::vector<std::vector<bool>> impassable_map) {

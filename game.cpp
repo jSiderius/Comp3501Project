@@ -78,6 +78,26 @@ void Game::InitWindow(void){
     }
 }
 
+
+void Game::InitView(void){
+
+
+    // Set up z-buffer
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    // Set viewport
+    int width, height;
+    glfwGetFramebufferSize(window_, &width, &height);
+    glViewport(0, 0, width, height);
+
+    // Set up camera
+    // Set current view
+    camera_.SetView(camera_position_g, camera_look_at_g, camera_up_g);
+    // Set projection
+    camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
+}
+
 void Game::Init2D(void){
     const char* vertexShaderCode2D = R"(
         #version 330 core
@@ -135,8 +155,26 @@ void Game::Init2D(void){
     }
 
     // Generate OpenGL texture
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glGenTextures(1, &textureIDs[0]);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    SOIL_free_image_data(image);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("\\orb.png");
+    image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+    if (!image) {
+        std::cerr << "Failed to load PNG image\n";
+        exit(EXIT_FAILURE);
+    }
+
+    // Generate OpenGL texture
+    glGenTextures(1, &textureIDs[1]);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[1]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
     SOIL_free_image_data(image);
 
@@ -145,25 +183,6 @@ void Game::Init2D(void){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void Game::InitView(void){
-
-
-    // Set up z-buffer
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    // Set viewport
-    int width, height;
-    glfwGetFramebufferSize(window_, &width, &height);
-    glViewport(0, 0, width, height);
-
-    // Set up camera
-    // Set current view
-    camera_.SetView(camera_position_g, camera_look_at_g, camera_up_g);
-    // Set projection
-    camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
 }
 
 void Game::InitEventHandlers(void){
@@ -213,7 +232,7 @@ void Game::Render2DOverlay(void){
 
     // Bind texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[1]);
 
     // Set the texture uniform in the shader
     glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
@@ -236,8 +255,7 @@ void Game::RenderPNG() {
     return;
 }
 
-
-void Game::RenderPreGameMenu(void){
+void Game::RenderGameMenu(int menu_index = 1){
     // Set up 2D rendering, using orthographic projection
     glDisable(GL_DEPTH_TEST);
 
@@ -275,7 +293,7 @@ void Game::RenderPreGameMenu(void){
 
     // Bind texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[menu_index]);
 
     // Set the texture uniform in the shader
     glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
@@ -360,7 +378,7 @@ void Game::RenderText(const char* text, float x, float y, float scale) {
 
         // Bind texture
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        glBindTexture(GL_TEXTURE_2D, textureIDs[0]);
 
         // Set the texture uniform in the shader
         glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
@@ -482,6 +500,7 @@ void Game::SetupScene(void){
         orbs_[i] = CreateOrbInstance(name, "SphereMesh", "TextureShader", "OrbTexture");
         orbs_[i]->Translate(glm::vec3(i*4,i*4,i));
         orbs_[i]->Scale(glm::vec3(3.0, 3.0, 3.0));
+        orbs_[i]->SetRadius(3.0f);
     }
     
     CreatePlayer("Player", "PlayerMesh", "TextureShader", "MetalTexture");  
@@ -542,10 +561,13 @@ void Game::MainLoop(void){
         scene_.Draw(&camera_);
 
         if(pre_game){ 
-            RenderPreGameMenu(); 
+            RenderGameMenu(0); 
             Controls();
+        }else if(post_game){
+            RenderGameMenu(1);
         }else{
             Render2DOverlay();
+            UpdateOrbs();
         }
             
         // Push buffer drawn in the background onto the display
@@ -559,15 +581,24 @@ void Game::MainLoop(void){
 void Game::UpdateOrbs(void){
 
     if(num_orbs_ == 0){
-        // add game end logic
+        post_game = true;
     }
 
     for(int i = 0; i < num_orbs_; i++){
+        if(orbs_[i]->Colliding(player_->GetPosition(), 2)){
+            delete orbs_[i];
+            orbs_[i] = orbs_[num_orbs_ - 1];
+            num_orbs_--;
+            break;
+        }
+        orbs_[i]->Update();
+        orbs_[i]->Draw(&camera_);
         //add collision function
         //remove orb from array / delete and num_orbs_ --
         //maybe give orbs some minimal amount of movement
     }
 }
+
 
 
 void Game::ResizeCallback(GLFWwindow* window, int width, int height){
@@ -609,7 +640,7 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
 
     // Create asteroid instance
     Orb *orb = new Orb(entity_name, geom, mat, tex);
-    scene_.AddNode(orb);
+    // scene_.AddNode(orb);
     return orb;
 }
 
