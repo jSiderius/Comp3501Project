@@ -36,6 +36,10 @@ namespace game {
             void SetFloorScale(glm::vec3 floor_scale);
             void SetFloorPos(glm::vec3 floor_pos);
             void SetImpassableMap(std::vector<std::vector<bool>> impassable_map);
+
+            void SetRadius(float radius);
+
+            bool Colliding(glm::vec3 position, float radius);
             
         private:
             // Angular momentum of asteroid
@@ -44,6 +48,8 @@ namespace game {
             glm::vec3 floor_scale_;
             glm::vec3 floor_pos_;
             std::vector<std::vector<bool>> impassable_map_;
+
+            float radius_;
     }; // class Orb
 
 } // namespace game

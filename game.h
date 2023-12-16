@@ -84,7 +84,7 @@ namespace game {
             GLuint programID3D;
             GLuint programID2D;
 
-            GLuint textureID;
+            GLuint textureIDs[2];
 
             // Methods to initialize the game
             void InitWindow(void);
@@ -94,8 +94,7 @@ namespace game {
 
             void Render2DOverlay(void);
             void RenderText(const char* text, float x, float y, float scale);
-            void RenderPreGameMenu(void);
-            void RenderPostGameMenu(void);
+            void RenderGameMenu(int menu_index);
             void RenderPNG();
 
             // Methods to handle events
