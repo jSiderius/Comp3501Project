@@ -1,9 +1,4 @@
 {
-  "ExpandedNodes": [
-    ""
-  ],
-  "SelectedNode": "\\CMakeLists.txt",
-  "PreviewInSolutionExplorer": false,
   "OutputFoldersPerTargetSystem": {
     "Local Machine": [
       "..\\..\\CMakeBuilds\\c7175275-8577-4ab8-a666-03b3af9f82fe\\build\\x86-Debug",
@@ -15,5 +10,10 @@
       "..\\..\\CMakeBuilds\\c7175275-8577-4ab8-a666-03b3af9f82fe\\build\\x64-Release",
       "..\\..\\CMakeBuilds\\c7175275-8577-4ab8-a666-03b3af9f82fe\\install\\x64-Release"
     ]
-  }
+  },
+  "ExpandedNodes": [
+    ""
+  ],
+  "SelectedNode": "\\CMakeLists.txt",
+  "PreviewInSolutionExplorer": false
 }

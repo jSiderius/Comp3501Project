@@ -468,7 +468,7 @@ void ResourceManager::CreateSphere(std::string object_name, float radius, int nu
                                         vertex_normal.y*radius, 
                                         vertex_normal.z*radius),
             vertex_color = glm::vec3(((float)i)/((float)num_samples_theta), 1.0-((float)j)/((float)num_samples_phi), ((float)j)/((float)num_samples_phi));
-            vertex_coord = glm::vec2(((float)i)/((float)num_samples_theta), 1.0-((float)j)/((float)num_samples_phi));
+            vertex_coord = glm::vec2(static_cast<float>(i) / (num_samples_theta - 1), 0.5f + asin(sin(phi)) / glm::pi<GLfloat>());
 
             // Add vectors to the data buffer
             for (int k = 0; k < 3; k++){

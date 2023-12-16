@@ -453,6 +453,9 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/metal.png");
 	resman_.LoadResource(Texture, "MetalTexture", filename.c_str());
 
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/orb.png");
+	resman_.LoadResource(Texture, "OrbTexture", filename.c_str());
+
     // Load texture to be used in normal mapping
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map2.png");
     resman_.LoadResource(Texture, "NormalMap", filename.c_str());
@@ -467,37 +470,26 @@ void Game::SetupScene(void){
 
     // Create an object for showing the texture
 	// instance contains identifier, geometry, shader, and texture
-	
-	game::SceneNode *mytorus1 = CreateInstance("MyTorus1", "SquareMesh", "Lighting", "RockyTexture"); 
-    game::SceneNode *mytorus2 = CreateInstance("MyTorus2", "SquareMesh", "Checkers", "RockyTexture");    
-    game::SceneNode *mytorus3 = CreateInstance("MyTorus3", "SquareMesh", "Combined", "Blocks");     
-    // game::SceneNode *sphere = CreateInstance("MySphere", "SphereMesh", "Sun", "Blocks");
-    
     game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
-    game::SceneNode *skybox = CreateInstance("SkyBox", "SquareMesh", "TextureShader", "StaryTexture");
+    game::SceneNode *skybox = CreateInstance("SkyBox", "SphereMesh", "TextureShader", "StaryTexture");
 
+    for(int i = 0; i < num_orbs_; i++){
+        std::stringstream ss;
+        ss << i;
+        std::string index = ss.str();
+        std::string name = "OrbInstance" + index;
+
+        orbs_[i] = CreateOrbInstance(name, "SphereMesh", "TextureShader", "OrbTexture");
+        orbs_[i]->Translate(glm::vec3(i*4,i*4,i));
+        orbs_[i]->Scale(glm::vec3(3.0, 3.0, 3.0));
+    }
+    
     CreatePlayer("Player", "PlayerMesh", "TextureShader", "MetalTexture");  
 
-	mytorus1->Translate(glm::vec3(3.0, 0.5, 0));
-    mytorus1->Scale(glm::vec3(1.0, 1.0, 1.0));
+    skybox->Scale(glm::vec3(600.0, 400.0, 600.0));
 
-    mytorus2->Translate(glm::vec3(0.0, 0.0, 0.0));
-    mytorus2->Scale(glm::vec3(0.5, 0.5, 0.5)); 
-
-    mytorus3->Translate(glm::vec3(-1.5, 0, 0));
-    mytorus3->Scale(glm::vec3(0.5, 0.5, 0.5));
-
-    skybox->Scale(glm::vec3(400.0, 400.0, 400.0));
-
-    // sphere->Scale(glm::vec3(0.5, 0.5, 0.5));
-
-    //floor->Rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
     floor->Translate(glm::vec3(-400, 0, 400));
-    floor->Scale(glm::vec3(10.0, 10.0, 10.0));
-
-	//game::SceneNode *mytorus = CreateInstance("MyTorus1", "SeamlessTorusMesh", "Lighting", "RockyTexture");
-	//game::SceneNode *wall = CreateInstance("Canvas", "FlatSurface", "Procedural", "RockyTexture"); // must supply a texture, even if not used
-		
+    floor->Scale(glm::vec3(10.0, 10.0, 10.0));	
 }
 
 
@@ -511,6 +503,13 @@ void Game::MainLoop(void){
     player_->SetFloorPos(floor->GetPosition());
     player_->SetFloorScale(floor->GetScale());
     player_->SetImpassableMap(impassable_map);
+
+    for(int i =0; i < num_orbs_; i++){
+        orbs_[i]->SetFloorPos(floor->GetPosition());
+        orbs_[i]->SetFloorScale(floor->GetScale());
+        orbs_[i]->SetImpassableMap(impassable_map);
+        orbs_[i]->Update(height_map, length_ , width_);
+    }
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
@@ -523,19 +522,7 @@ void Game::MainLoop(void){
                 scene_.Update();
                 Controls();
 
-                // Animate the scene
-                SceneNode *node1 = scene_.GetNode("MyTorus1");
-                SceneNode *node2 = scene_.GetNode("MyTorus2");
-                SceneNode *node3 = scene_.GetNode("MyTorus3");
-                SceneNode *node4 = scene_.GetNode("MySphere");
                 SceneNode *skybox = scene_.GetNode("SkyBox");
-                
-                //SceneNode *node = scene_.GetNode("Canvas");
-
-				glm::quat rotation = glm::angleAxis(0.95f*glm::pi<float>()/180.0f, glm::vec3(0.0, 1.0, 0.0));
-                node1->Rotate(rotation);
-                node2->Rotate(-rotation);
-                node3->Rotate(rotation);
 
                 glm::quat orientationMatrix = player_->GetOrientation();
                 glm::vec3 offsetInPlayerSpace = glm::vec3(0.2, 1.5, 15.0);
@@ -569,6 +556,19 @@ void Game::MainLoop(void){
     }
 }
 
+void Game::UpdateOrbs(void){
+
+    if(num_orbs_ == 0){
+        // add game end logic
+    }
+
+    for(int i = 0; i < num_orbs_; i++){
+        //add collision function
+        //remove orb from array / delete and num_orbs_ --
+        //maybe give orbs some minimal amount of movement
+    }
+}
+
 
 void Game::ResizeCallback(GLFWwindow* window, int width, int height){
 
@@ -585,6 +585,33 @@ Game::~Game(){
     glfwTerminate();
 }
 
+
+Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name){
+
+    // Get resources
+    Resource *geom = resman_.GetResource(object_name);
+    if (!geom){
+        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
+    }
+
+    Resource *mat = resman_.GetResource(material_name);
+    if (!mat){
+        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
+    }
+
+    Resource *tex = NULL;
+    if (texture_name != ""){
+        tex = resman_.GetResource(texture_name);
+        if (!tex){
+            throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
+        }
+    }
+
+    // Create asteroid instance
+    Orb *orb = new Orb(entity_name, geom, mat, tex);
+    scene_.AddNode(orb);
+    return orb;
+}
 
 Asteroid *Game::CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name){
 
