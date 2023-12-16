@@ -20,6 +20,7 @@
 #include "camera.h"
 #include "asteroid.h"
 #include "player.h"
+#include "orb.h"
 
 namespace game {
 
@@ -66,6 +67,10 @@ namespace game {
             // Player abstraction
             Player *player_;
 
+            int num_orbs_ = 20; 
+            //Orb, Array Eventually
+            Orb* orbs_[20]; 
+
             // Flag to turn animation on/off
             bool animating_;
 
@@ -97,9 +102,12 @@ namespace game {
             static void ResizeCallback(GLFWwindow* window, int width, int height);
             void Controls(void);
 
+            void UpdateOrbs(void);
+
             // Asteroid field
             // Create instance of one asteroid
             Asteroid *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name);
+            Orb* CreateOrbInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name);
 
             // Create entire random asteroid field
             void CreateAsteroidField(int num_asteroids = 1500);

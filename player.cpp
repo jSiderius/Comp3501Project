@@ -149,7 +149,7 @@ void Player::Update(std::vector<std::vector<float>> height_values, float length,
 
         float height = (1 - t) * ((1 - s) * a + s * b) + (t * ((1 - s) * c + s * d));
 
-        height = 7.0 + floor_pos_.y + (height/5.0f) * floor_scale_.y;
+        height = 4.0 + floor_pos_.y + (height/5.0f) * floor_scale_.y; //floor scale multiplied by height?? 
 
         SetPosition(glm::vec3(position.x, height, position.z));
     }

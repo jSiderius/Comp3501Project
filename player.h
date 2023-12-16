@@ -68,6 +68,8 @@ namespace game {
             SceneNode **wheels_;
             SceneNode **antennas_;
             glm::vec3 *offsets_;
+
+            
             
     }; // class Player
 
