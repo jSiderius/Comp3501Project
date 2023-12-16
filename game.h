@@ -73,8 +73,8 @@ namespace game {
             bool post_game = false; 
 
             //height map length and width
-            float length_ = 500;
-            float width_ = 500;
+            float length_ = 800;
+            float width_ = 800;
 
             GLuint programID3D;
             GLuint programID2D;
