@@ -6,15 +6,11 @@ project(${PROJ_NAME} C CXX)
 
 # Specify project files: header files and source files
 set(HDRS
-    asteroid.h camera.h game.h model_loader.h resource.h resource_manager.h scene_graph.h scene_node.h
+    asteroid.h camera.h game.h model_loader.h resource.h resource_manager.h scene_graph.h scene_node.h title_screen.h player.h
 )
  
 set(SRCS
-<<<<<<< HEAD
-    combined_fp.glsl combined_vp.glsl title_screen.h title_screen.cpp asteroid.cpp camera.cpp game.cpp main.cpp player.cpp player.h resource.cpp resource_manager.cpp scene_graph.cpp scene_node.cpp sun_fp.glsl normal_map_vp.glsl normal_map_fp.glsl sun_vp.glsl textured_material_fp.glsl textured_material_vp.glsl procedural_vp.glsl procedural_fp.glsl
-=======
-    combined_fp.glsl combined_vp.glsl asteroid.cpp camera.cpp game.cpp main.cpp player.cpp player.h resource.cpp resource_manager.cpp scene_graph.cpp scene_node.cpp sun_fp.glsl normal_map_vp.glsl normal_map_fp.glsl sun_vp.glsl textured_material_fp.glsl textured_material_vp.glsl procedural_vp.glsl procedural_fp.glsl
->>>>>>> 497e5860fc00dce238d1a3e9764e57100c9f11c3
+    combined_fp.glsl combined_vp.glsl title_screen.cpp asteroid.cpp camera.cpp game.cpp main.cpp player.cpp resource.cpp resource_manager.cpp scene_graph.cpp scene_node.cpp sun_fp.glsl normal_map_vp.glsl normal_map_fp.glsl sun_vp.glsl textured_material_fp.glsl textured_material_vp.glsl procedural_vp.glsl procedural_fp.glsl
 )
 
 
@@ -27,7 +23,7 @@ include_directories(${OPENGL_INCLUDE_DIR})
 target_link_libraries(${PROJ_NAME} ${OPENGL_gl_LIBRARY})
 
 # Other libraries needed
-set(LIBRARY_PATH C:\Users\Josh\School\Code\COMP3501\Libraries\Libraries)
+set(LIBRARY_PATH D:/Development/Comp\ 3501/Libraries)
 include_directories(${LIBRARY_PATH}/include)
 if(NOT WIN32)
     find_library(GLEW_LIBRARY GLEW)
