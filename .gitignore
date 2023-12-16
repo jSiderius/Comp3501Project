@@ -16,3 +16,6 @@ path_config.h
 
 # Ignore SQLite database files
 .slnx.sqlite
+
+#ignore large regeneratable files
+height_map.txt
