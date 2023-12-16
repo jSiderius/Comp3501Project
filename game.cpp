@@ -82,18 +82,24 @@ void Game::Init2D(void){
     const char* vertexShaderCode2D = R"(
         #version 330 core
         layout(location = 0) in vec2 vertexPosition;
+        layout(location = 1) in vec2 textureCoord;
+        out vec2 fragTextureCoord;
         uniform mat4 projection_mat;
         void main() {
+            fragTextureCoord = textureCoord;
             gl_Position = projection_mat * vec4(vertexPosition, 0.0, 1.0);
         }
     )";
 
     const char* fragmentShaderCode2D = R"(
         #version 330 core
+
+        in vec2 fragTextureCoord;
         out vec4 fragColor;
         uniform vec4 color;
+        uniform sampler2D textureSampler;
         void main() {
-            fragColor = color;
+            fragColor = texture2D(textureSampler, fragTextureCoord);
         }
     )";
 
@@ -118,10 +124,10 @@ void Game::Init2D(void){
     glDeleteShader(fragmentShaderID2D);
 
     // Load the PNG image
-    GLuint textureID;
+    // GLuint textureID;
     int width, height;
 
-    std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("\\stars.png");
+    std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("\\Rover.png");
     unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
     if (!image) {
         std::cerr << "Failed to load PNG image\n";
@@ -186,10 +192,10 @@ void Game::Render2DOverlay(void){
 
     // Define vertices for a simple rectangle
     float rectangleVertices[] = {
-        5.0f*window_width_g/6.0f, 5.0f*window_height_g/6.0f, // Top-left corner
-        19.0f*window_width_g/20.0f, 5.0f*window_height_g/6.0f,  // Top-right corner
-        19.0f*window_width_g/20.0f, 19.0f*window_height_g/20.0f,  // Bottom-right corner
-        5.0f*window_width_g/6.0f, 19.0f*window_height_g/20.0f   // Bottom-left corner
+        5.0f*window_width_g/6.0f, 5.0f*window_height_g/6.0f, 0.0f, 1.0f, // Top-left corner
+        19.0f*window_width_g/20.0f, 5.0f*window_height_g/6.0f, 1.0f, 1.0f,  // Top-right corner
+        19.0f*window_width_g/20.0f, 19.0f*window_height_g/20.0f, 1.0f, 0.0f,  // Bottom-right corner
+        5.0f*window_width_g/6.0f, 19.0f*window_height_g/20.0f, 0.0f, 0.0f   // Bottom-left corner
     };
 
     // Generate a vertex buffer object (VBO) for the rectangle
@@ -200,81 +206,36 @@ void Game::Render2DOverlay(void){
 
     // Enable vertex attributes
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // Bind texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Set the texture uniform in the shader
+    glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
 
     // Render the rectangle
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     // Disable vertex attributes and clean up resources
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
     glDeleteBuffers(1, &rectangleVBO);
 
-    // RenderText("Press Enter to continue", 400.0f, 300.0f, 1.0f);
+    // RenderPNG();
 
     // Re-enable depth testing for subsequent rendering
     glEnable(GL_DEPTH_TEST);
 }
 
-void Game::RenderPNG(){
-    glDisable(GL_DEPTH_TEST);
-
-    // Use the 2D shader program
-    glUseProgram(programID2D);
-    
-    glm::mat4 projectionMatrix = glm::ortho(0.0f, window_width_g * 1.0f, 0.0f, window_height_g * 1.0f, -1.0f, 1.0f);
-    GLuint projectionMatrixUniform = glGetUniformLocation(programID2D, "projection_mat");
-    glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-    
-    // Assuming you have a quad (two triangles) to render the texture
-    // Replace these vertices and texture coordinates with your own if needed
-    GLfloat vertices[] = {
-        0.0f, 0.0f, 0.0f, 0.0f,
-        window_width_g, 0.0f, 1.0f, 0.0f,
-        window_width_g,  window_height_g, 1.0f, 1.0f,
-        0.0f,  window_height_g, 0.0f, 1.0f
-    };
-
-    GLuint indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    // Create Vertex Array Object (VAO)
-    GLuint vao, vbo, ebo;
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-
-    glBindVertexArray(vao);
-
-    // Bind and set vertex buffer data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Bind and set element buffer data
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // Set attribute pointers
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    // Bind the texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID); // Assuming textureID is the ID of the loaded stars.png texture
-    glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
-
-    // Draw the quad
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-    // Clean up
-    glBindVertexArray(0);
-    glUseProgram(0);
-
-    glEnable(GL_DEPTH_TEST);
+void Game::RenderPNG() {
+    return;
 }
+
 
 void Game::RenderPreGameMenu(void){
     // Set up 2D rendering, using orthographic projection
@@ -293,10 +254,10 @@ void Game::RenderPreGameMenu(void){
 
     // Define vertices for a simple rectangle
     float rectangleVertices[] = {
-        0, 0, // Top-left corner
-        window_width_g, 0.0f,  // Top-right corner
-        window_width_g, window_height_g,  // Bottom-right corner
-        0.0f, window_height_g // Bottom-left corner
+        0.0f, window_height_g, 0.0f, 0.0f, // Top-left corner
+        window_width_g, window_height_g, 1.0f, 0.0f,  // Top-right corner
+        window_width_g, 0.0f, 1.0f, 1.0f,  // Bottom-right corner
+        0.0f, 0.0f, 0.0f, 1.0f   // Bottom-left corner
     };
 
     // Generate a vertex buffer object (VBO) for the rectangle
@@ -307,88 +268,47 @@ void Game::RenderPreGameMenu(void){
 
     // Enable vertex attributes
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // Bind texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Set the texture uniform in the shader
+    glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
 
     // Render the rectangle
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     // Disable vertex attributes and clean up resources
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
     glDeleteBuffers(1, &rectangleVBO);
-
-    // RenderText("Press Enter to continue", 400.0f, 300.0f, 1.0f);
 
     // Re-enable depth testing for subsequent rendering
     glEnable(GL_DEPTH_TEST);
 
-    // Set up 2D rendering, using orthographic projection
-    // glDisable(GL_DEPTH_TEST);
-
-    // // Use the 2D shader program
-    // glUseProgram(programID2D);
-
-    // // Set the texture unit
-    // glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
-
-    // // Set up the orthographic projection matrix for text rendering
-    // glm::mat4 projectionMatrix = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
-    // GLuint projectionMatrixUniform = glGetUniformLocation(programID2D, "projectionMatrix");
-    // glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
-    // // Define vertices and texture coordinates for rendering the textured quad
-    // float quadVertices[] = {
-    //     100.0f, 100.0f, 0.0f,  // Top-left corner
-    //     300.0f, 100.0f, 0.0f,  // Top-right corner
-    //     300.0f, 300.0f, 0.0f,  // Bottom-right corner
-    //     100.0f, 300.0f, 0.0f   // Bottom-left corner
-    // };
-
-    // float texCoords[] = {
-    //     0.0f, 0.0f,  // Top-left corner
-    //     1.0f, 0.0f,  // Top-right corner
-    //     1.0f, 1.0f,  // Bottom-right corner
-    //     0.0f, 1.0f   // Bottom-left corner
-    // };
-
-    // GLuint quadVBO;
-    // glGenBuffers(1, &quadVBO);
-    // glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices) + sizeof(texCoords), nullptr, GL_STATIC_DRAW);
-    // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quadVertices), quadVertices);
-    // glBufferSubData(GL_ARRAY_BUFFER, sizeof(quadVertices), sizeof(texCoords), texCoords);
-
-    // // Enable vertex attributes
-    // glEnableVertexAttribArray(0);  // Vertex position
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-    // glEnableVertexAttribArray(1);  // Texture coordinates
-    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(sizeof(quadVertices)));
-
-    // // Bind the texture
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, textureID);
-
-    // // Render the textured quad
-    // glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    // // Disable vertex attributes and clean up resources
-    // glDisableVertexAttribArray(0);
-    // glDisableVertexAttribArray(1);
-    // glDeleteBuffers(1, &quadVBO);
-
-    // // Re-enable depth testing for subsequent rendering
-    // glEnable(GL_DEPTH_TEST);
+    // RenderText("Press Enter to continue", 400.0f, 300.0f, 1.0f);
 }
 
 void Game::RenderText(const char* text, float x, float y, float scale) {
-    // Set up the orthographic projection matrix for text rendering
-    glm::mat4 projectionMatrix = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
-    GLuint projectionMatrixUniform = glGetUniformLocation(programID2D, "projectionMatrix");
-    glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+    // Set up 2D rendering, using orthographic projection
+    glDisable(GL_DEPTH_TEST);
+
+    // Use the 2D shader program
+    glUseProgram(programID2D);
 
     // Set up the text color
     GLuint colorUniform = glGetUniformLocation(programID2D, "color");
     glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);  // White color
+
+    // Set up the orthographic projection matrix for text rendering
+    glm::mat4 projectionMatrix = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
+    GLuint projectionMatrixUniform = glGetUniformLocation(programID2D, "projectionMatrix");
+    glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     // Character size in the texture atlas
     int charWidth = 8;
@@ -407,11 +327,19 @@ void Game::RenderText(const char* text, float x, float y, float scale) {
 
         // Define vertices for rendering the character using a textured quad
         float charVertices[] = {
-            x, y, 0.0f, uStart, vEnd,  // Top-left
-            x + charWidth * scale, y, 0.0f, uEnd, vEnd,  // Top-right
-            x + charWidth * scale, y + charHeight * scale, 0.0f, uEnd, vStart,  // Bottom-right
-            x, y + charHeight * scale, 0.0f, uStart, vStart  // Bottom-left
+            x, y, uStart, vEnd,  // Top-left
+            x + charWidth * scale, y, uEnd, vEnd,  // Top-right
+            x + charWidth * scale, y + charHeight * scale, uEnd, vStart,  // Bottom-right
+            x, y + charHeight * scale, uStart, vStart  // Bottom-left
         };
+
+        // Define vertices for a simple rectangle
+        // float charVertices[] = {
+        //     0.0f, y, 1.0f, 0.0f, // Top-left corner
+        //     x, y, 0.0f, 0.0f,  // Top-right corner
+        //     x, 0.0f, 0.0f, 1.0f,  // Bottom-right corner
+        //     0.0f, 0.0f, 1.0f, 1.0f   // Bottom-left corner
+        // };
 
         // Generate a vertex buffer object (VBO) for the character
         GLuint charVBO;
@@ -420,11 +348,22 @@ void Game::RenderText(const char* text, float x, float y, float scale) {
         glBufferData(GL_ARRAY_BUFFER, sizeof(charVertices), charVertices, GL_STATIC_DRAW);
 
         // Enable vertex attributes
-        glEnableVertexAttribArray(0);  // Position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+        // glEnableVertexAttribArray(0);  // Position
+        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+        
+        // Enable vertex attributes
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 
-        glEnableVertexAttribArray(1);  // Texture coordinates
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+        // Bind texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        // Set the texture uniform in the shader
+        glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
 
         // Render the character
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -437,6 +376,8 @@ void Game::RenderText(const char* text, float x, float y, float scale) {
         // Move the position for the next character
         x += charWidth * scale;
     }
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -628,6 +569,7 @@ void Game::MainLoop(void){
     }
 }
 
+
 void Game::ResizeCallback(GLFWwindow* window, int width, int height){
 
     // Set up viewport and camera projection based on new window size
@@ -684,6 +626,7 @@ void Game::CreateAsteroidField(int num_asteroids){
         ast->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
     }
 }
+
 
 void Game::CreatePlayer(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name){
     // Get resources
@@ -750,6 +693,7 @@ SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name
     SceneNode *scn = scene_.CreateNode(entity_name, geom, mat, tex);
     return scn;
 }
+
 
 void Game::Controls(void)
 {
@@ -823,6 +767,7 @@ void Game::Controls(void)
     // game->player_->Roll(-rot_factor);
     // }
 }
+
 
 std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std::vector<float>> height_values) {
 
