@@ -409,6 +409,7 @@ void Game::SetupResources(void){
 
     // Create geometry of the objects
     resman_.CreateSphere("SphereMesh");
+    resman_.CreateSphere("AsteroidMesh", 3, 90, 45);
 	resman_.CreateTorus("SimpleTorusMesh", 0.8, 0.35, 30, 30);
 	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
 	resman_.CreateWall("FlatSurface");
@@ -468,6 +469,10 @@ void Game::SetupResources(void){
     // Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/tire.png");
 	resman_.LoadResource(Texture, "TireTexture", filename.c_str());
+
+    // Load texture to be used on the object
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/asteroid.jpg");
+    resman_.LoadResource(Texture, "AsteroidTexture", filename.c_str());
 
 	// Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/download.jpg");
@@ -532,6 +537,8 @@ void Game::SetupScene(void){
 
     floor->Translate(glm::vec3(-400, 0, 400));
     floor->Scale(glm::vec3(10.0, 10.0, 10.0));	
+
+
 }
 
 
@@ -542,6 +549,9 @@ void Game::MainLoop(void){
 
     std::vector<std::vector<float>> height_map = ResourceManager::ReadHeightMap(material_directory_g+"\\height_map.txt");
     std::vector<std::vector<bool>> impassable_map = CreateImpassableTerrainMap(height_map);
+
+    CreateAsteroidField(500, floor, height_map);
+
     player_->SetFloorPos(floor->GetPosition());
     player_->SetFloorScale(floor->GetScale());
     player_->SetImpassableMap(impassable_map);
@@ -563,6 +573,13 @@ void Game::MainLoop(void){
 			{
                 scene_.Update();
                 Controls();
+
+                // Setting uniforms for lighting shader
+                Resource* mat = resman_.GetResource("Lighting");
+                glUseProgram(mat->GetResource());
+                // Uniform player position
+                GLint view_pos = glGetUniformLocation(mat->GetResource(), "view_pos");
+                glUniform3fv(view_pos, 1, glm::value_ptr(camera_.GetPosition()));
 
                 SceneNode *skybox = scene_.GetNode("SkyBox");
 
@@ -668,49 +685,6 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
     // scene_.AddNode(orb);
     return orb;
 }
-
-
-Asteroid *Game::CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name){
-
-    // Get resources
-    Resource *geom = resman_.GetResource(object_name);
-    if (!geom){
-        throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
-    }
-
-    Resource *mat = resman_.GetResource(material_name);
-    if (!mat){
-        throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
-    }
-
-    // Create asteroid instance
-    Asteroid *ast = new Asteroid(entity_name, geom, mat);
-    scene_.AddNode(ast);
-    return ast;
-}
-
-
-void Game::CreateAsteroidField(int num_asteroids){
-
-    // Create a number of asteroid instances
-    for (int i = 0; i < num_asteroids; i++){
-        // Create instance name
-        std::stringstream ss;
-        ss << i;
-        std::string index = ss.str();
-        std::string name = "AsteroidInstance" + index;
-
-        // Create asteroid instance
-        Asteroid *ast = CreateAsteroidInstance(name, "SimpleSphereMesh", "ObjectMaterial");
-
-        // Set attributes of asteroid: random position, orientation, and
-        // angular momentum
-        ast->SetPosition(glm::vec3(-300.0 + 600.0*((float) rand() / RAND_MAX), -300.0 + 600.0*((float) rand() / RAND_MAX), 600.0*((float) rand() / RAND_MAX)));
-        ast->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
-        ast->SetAngM(glm::normalize(glm::angleAxis(0.05f*glm::pi<float>()*((float) rand() / RAND_MAX), glm::vec3(((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX), ((float) rand() / RAND_MAX)))));
-    }
-}
-
 
 void Game::CreatePlayer(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name){
     // Get resources
@@ -887,6 +861,54 @@ std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std:
     }
 
     return impassableMap;
+
+}
+
+void Game::CreateAsteroidField(int num_asteroids, SceneNode* floor_, std::vector<std::vector<float>> height_values) {
+
+    int length_count = height_values.size();
+    int width_count = height_values[0].size();
+    float height = 0.0;
+
+    for (int i = 0; i < num_asteroids; i++) {
+        // Create instance name
+        std::stringstream ss;
+        ss << i;
+        std::string index = ss.str();
+        std::string name = "AsteroidInstance" + index;
+
+        // Create asteroid instance
+        SceneNode* ast = CreateInstance(name, "AsteroidMesh", "Lighting", "AsteroidTexture");
+
+        // Set attributes of asteroid: random position, orientation, and
+        float x_pos = (floor_->GetPosition().x + length_ * floor_->GetScale().x * ((float)rand() / RAND_MAX));
+        float z_pos = (floor_->GetPosition().z - width_ * floor_->GetScale().z * ((float)rand() / RAND_MAX));
+
+        float x = ((x_pos - floor_->GetPosition().x) / (length_ * floor_->GetScale().x) * length_count);
+        float z = (-(z_pos - floor_->GetPosition().z) / (width_ * floor_->GetScale().z) * width_count);
+
+        if ((length_count-1 > floor(x)) && (floor(x) >= 0) && (width_count-1 > floor(z)) && (floor(z) >= 0)) {
+
+            float a = height_values[floor(x)][ceil(z)];
+            float b = height_values[ceil(x)][ceil(z)];
+            float c = height_values[floor(x)][floor(z)];
+            float d = height_values[ceil(x)][floor(z)];
+
+            float s = x - floor(x);
+            float t = z - floor(z);
+
+            height = (1 - t) * ((1 - s) * a + s * b) + (t * ((1 - s) * c + s * d));
+
+            height = floor_->GetPosition().y + (height / 5.0f) * floor_->GetScale().y;
+        }
+
+        float rand_scale = 1 + 4 * ((float)rand() / RAND_MAX);
+
+        ast->SetScale(glm::vec3(rand_scale, rand_scale, rand_scale));
+        ast->SetPosition(glm::vec3(x_pos, height, z_pos));
+        ast->SetOrientation(glm::normalize(glm::angleAxis(glm::pi<float>() * ((float)rand() / RAND_MAX), glm::vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)))));
+        
+    }
 
 }
 

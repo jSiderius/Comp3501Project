@@ -105,11 +105,10 @@ namespace game {
 
             // Asteroid field
             // Create instance of one asteroid
-            Asteroid *CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name);
             Orb* CreateOrbInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name);
 
             // Create entire random asteroid field
-            void CreateAsteroidField(int num_asteroids = 1500);
+            void CreateAsteroidField(int num_asteroids, SceneNode* floor_, std::vector<std::vector<float>> height_values);
             // Create the player
             void CreatePlayer(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name);
 
