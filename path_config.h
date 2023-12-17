@@ -1,2 +1,2 @@
-#define MATERIAL_DIRECTORY "C:\\Users\\josh.siderius\\Desktop\\Comp3501Project"
+#define MATERIAL_DIRECTORY "D:\\Development\\Comp\ 3501\\Group\ Project\\Comp3501Project-main"
 // change to specify your own location here

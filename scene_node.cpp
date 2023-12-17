@@ -231,10 +231,8 @@ void SceneNode::SetupShader(GLuint program){
     glUniform1f(timer_var, (float) current_time);
 
     // Light Position
-    float theta = current_time/2;
-    float radius = 25.0f; 
     GLint light_pos = glGetUniformLocation(program, "light_pos");
-    glUniform3f(light_pos,radius*cos(theta), 0, radius*sin(theta));
+    glUniform3f(light_pos,0, 10000, 0);
 
     //Specular Power 
     GLint spec_var = glGetUniformLocation(program, "spec_power");
