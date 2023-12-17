@@ -19,7 +19,7 @@ namespace game {
 
         public:
             // Create asteroid from given resources
-            Orb(const std::string name, const Resource *geometry, const Resource *material, const Resource* texture);
+            Orb(const std::string name, const Resource *geometry, const Resource *material, const Resource* texture, SceneNode* particles);
 
             // Destructor
             ~Orb();
@@ -27,9 +27,6 @@ namespace game {
             // Get/set attributes specific to asteroids
             glm::quat GetAngM(void) const;
             void SetAngM(glm::quat angm);
-
-            // Update geometry configuration
-            void Update(void);
 
             void Update(std::vector<std::vector<float>> height_values, float length, float width);
 
@@ -40,6 +37,9 @@ namespace game {
             void SetRadius(float radius);
 
             bool Colliding(glm::vec3 position, float radius);
+
+            void Update(void) override;
+            void Draw(Camera *camera) override;
             
         private:
             // Angular momentum of asteroid
@@ -48,6 +48,8 @@ namespace game {
             glm::vec3 floor_scale_;
             glm::vec3 floor_pos_;
             std::vector<std::vector<bool>> impassable_map_;
+
+            SceneNode* particles_;
 
             float radius_;
     }; // class Orb

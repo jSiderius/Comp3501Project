@@ -16,6 +16,7 @@
 // Default extensions for different shader source files
 #define VERTEX_PROGRAM_EXTENSION "_vp.glsl"
 #define FRAGMENT_PROGRAM_EXTENSION "_fp.glsl"
+#define GEOMETRY_PROGRAM_EXTENSION "_gp.glsl"
 
 namespace game {
 
@@ -49,6 +50,9 @@ namespace game {
             void CreateSquare(std::string object_name);
 
             static std::vector<std::vector<float>> ReadHeightMap(const std::string& filename);
+
+            void ResourceManager::CreateFireworkParticles(std::string object_name, int num_particles=100);
+            void ResourceManager::CreateSphereParticles(std::string object_name, int num_particles=10000);
 
         private:
             // List storing all resources

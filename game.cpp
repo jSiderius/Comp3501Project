@@ -484,6 +484,16 @@ void Game::SetupResources(void){
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map2.png");
     resman_.LoadResource(Texture, "NormalMap", filename.c_str());
 
+    // Load material to be applied to particles
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle1");
+    resman_.LoadResource(Material, "ParticleMaterial1", filename.c_str());
+
+    // // Load material to be applied to particles
+    // filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle2");
+    // resman_.LoadResource(Material, "ParticleMaterial2", filename.c_str());
+
+    resman_.CreateSphereParticles("SphereParticles");
+    // resman_.CreateFireworkParticles("FireworkParticles");
 }
 
 
@@ -496,6 +506,13 @@ void Game::SetupScene(void){
 	// instance contains identifier, geometry, shader, and texture
     game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
     game::SceneNode *skybox = CreateInstance("SkyBox", "SphereMesh", "TextureShader", "StaryTexture");
+
+    game::SceneNode *particles1 = CreateInstance("ParticleInstance1", "SphereMesh", "ParticleMaterial1");
+    // game::SceneNode *particles2 = CreateInstance("ParticleInstance1", "SphereParticles", "ParticleMaterial1");
+
+    // particles1->Translate(glm::vec3(10.0f, 0.0, 0.0));
+    // game::SceneNode *particles2 = CreateInstance("ParticleInstance2", "FireworkParticles", "ParticleMaterial2", "RockyTexture");
+    // particles2->Translate(glm::vec3(-1.5, 0.0, 0.0));
 
     for(int i = 0; i < num_orbs_; i++){
         std::stringstream ss;
@@ -644,8 +661,10 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
         }
     }
 
+    SceneNode* particles = CreateInstance("ParticleInstance1", "SphereParticles", "ParticleMaterial1");
+    particles->Translate(glm::vec3(100,100,100));
     // Create asteroid instance
-    Orb *orb = new Orb(entity_name, geom, mat, tex);
+    Orb *orb = new Orb(entity_name, geom, mat, tex, particles);
     // scene_.AddNode(orb);
     return orb;
 }
@@ -873,3 +892,5 @@ std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std:
 
 
 } // namespace game
+
+
