@@ -18,9 +18,9 @@ const unsigned int window_height_g = 1200;
 const bool window_full_screen_g = false;
 
 // Viewport and camera settings
-float camera_near_clip_distance_g = 0.1;
-float camera_far_clip_distance_g = 1000.0;
-float camera_fov_g = 20.0; // Field-of-view of camera
+float camera_near_clip_distance_g = 10;
+float camera_far_clip_distance_g = 5000.0;
+float camera_fov_g = 40.0; // Field-of-view of camera
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 glm::vec3 camera_position_g(0.5, 0.5, 10.0);
 glm::vec3 camera_look_at_g(0.0, 0.0, 0.0);
@@ -511,7 +511,7 @@ void Game::SetupScene(void){
     
     CreatePlayer("Player", "PlayerMesh", "TextureShader", "MetalTexture");  
 
-    skybox->Scale(glm::vec3(600.0, 400.0, 600.0));
+    skybox->Scale(glm::vec3(1800.0, 1200.0, 1800.0));
 
     floor->Translate(glm::vec3(-400, 0, 400));
     floor->Scale(glm::vec3(10.0, 10.0, 10.0));	
