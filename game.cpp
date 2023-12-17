@@ -13,8 +13,8 @@ namespace game {
 
 // Main window settings
 const std::string window_title_g = "Texturing & Lighting Demo";
-const unsigned int window_width_g = 800;
-const unsigned int window_height_g = 600;
+const unsigned int window_width_g = 1600;
+const unsigned int window_height_g = 1200;
 const bool window_full_screen_g = false;
 
 // Viewport and camera settings
@@ -98,6 +98,7 @@ void Game::InitView(void){
     camera_.SetProjection(camera_fov_g, camera_near_clip_distance_g, camera_far_clip_distance_g, width, height);
 }
 
+
 void Game::Init2D(void){
     const char* vertexShaderCode2D = R"(
         #version 330 core
@@ -165,7 +166,7 @@ void Game::Init2D(void){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("\\orb.png");
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("\\marsScreen.jpg");
     image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
     if (!image) {
         std::cerr << "Failed to load PNG image\n";
@@ -185,6 +186,7 @@ void Game::Init2D(void){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
+
 void Game::InitEventHandlers(void){
 
     // Set event callbacks
@@ -193,6 +195,7 @@ void Game::InitEventHandlers(void){
     // Set pointer to game object, so that callbacks can access it
     glfwSetWindowUserPointer(window_, (void *) this);
 }
+
 
 void Game::Render2DOverlay(void){
     // Set up 2D rendering, using orthographic projection
@@ -251,9 +254,11 @@ void Game::Render2DOverlay(void){
     glEnable(GL_DEPTH_TEST);
 }
 
+
 void Game::RenderPNG() {
     return;
 }
+
 
 void Game::RenderGameMenu(int menu_index = 1){
     // Set up 2D rendering, using orthographic projection
@@ -311,6 +316,7 @@ void Game::RenderGameMenu(int menu_index = 1){
 
     // RenderText("Press Enter to continue", 400.0f, 300.0f, 1.0f);
 }
+
 
 void Game::RenderText(const char* text, float x, float y, float scale) {
     // Set up 2D rendering, using orthographic projection
@@ -471,7 +477,7 @@ void Game::SetupResources(void){
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/metal.png");
 	resman_.LoadResource(Texture, "MetalTexture", filename.c_str());
 
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("/orb.png");
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/orb3.png");
 	resman_.LoadResource(Texture, "OrbTexture", filename.c_str());
 
     // Load texture to be used in normal mapping
@@ -578,6 +584,7 @@ void Game::MainLoop(void){
     }
 }
 
+
 void Game::UpdateOrbs(void){
 
     if(num_orbs_ == 0){
@@ -598,7 +605,6 @@ void Game::UpdateOrbs(void){
         //maybe give orbs some minimal amount of movement
     }
 }
-
 
 
 void Game::ResizeCallback(GLFWwindow* window, int width, int height){
@@ -643,6 +649,7 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
     // scene_.AddNode(orb);
     return orb;
 }
+
 
 Asteroid *Game::CreateAsteroidInstance(std::string entity_name, std::string object_name, std::string material_name){
 
@@ -775,7 +782,7 @@ void Game::Controls(void)
     }
 
     // View control
-    float rot_factor(glm::pi<float>() / 360.0); // amount the ship turns per keypress
+    float rot_factor(glm::pi<float>() / 270.0); // amount the ship turns per keypress
     float trans_factor = 5.0; // amount the ship steps forward per keypress
     
     if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS){
