@@ -463,14 +463,8 @@ void Game::SetupResources(void){
     // Create geometry of the objects
     resman_.CreateSphere("SphereMesh");
     resman_.CreateSphere("AsteroidMesh", 3, 90, 45);
-	resman_.CreateTorus("SimpleTorusMesh", 0.8, 0.35, 30, 30);
-	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
-	resman_.CreateWall("FlatSurface");
-	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
     resman_.CreateTerrain("TerrainMesh", length_, width_);
     resman_.CreateRectangle("PlayerMesh", 1.0, 0.5, 3.0);
-    resman_.CreateSquare("SquareMesh");
-
     resman_.CreateCylinder("AntennaCylinderMesh", 1.0, 0.025, 30, 30);
     resman_.CreateSeamlessTorus("AntennaTorusMesh", 0.1, 0.05, 80, 80);
 
@@ -479,33 +473,9 @@ void Game::SetupResources(void){
 	std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material"); //SO /textured_material_fp.glsl, /textured_material_vp.glsl ... 
 	resman_.LoadResource(Material, "TextureShader", filename.c_str());
 
-	// shader for corona effect
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/corona");
-	resman_.LoadResource(Material, "Procedural", filename.c_str());
-
-    // Load material to be used for normal mapping
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map");
-    resman_.LoadResource(Material, "NormalMapMaterial", filename.c_str());
-
-	// shader for checkerboard effect
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/rectangle"); 
-	resman_.LoadResource(Material, "Blocks", filename.c_str());
-
-    //ADD THE CHECKERBOARD MATERIAL
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
-	resman_.LoadResource(Material, "Checkers", filename.c_str());
-
 	// shader for 3-term lighting effect
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/lit");
 	resman_.LoadResource(Material, "Lighting", filename.c_str());
-
-    // SHADER FOR SUN OBJECT
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/sun");
-	resman_.LoadResource(Material, "Sun", filename.c_str());
-
-    // SHADER FOR COMBINED CHECKERBOARD & LIGHTING
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/combined");
-	resman_.LoadResource(Material, "Combined", filename.c_str());
 
 	// Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/mars.jpg");
@@ -527,20 +497,12 @@ void Game::SetupResources(void){
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/asteroid.jpg");
     resman_.LoadResource(Texture, "AsteroidTexture", filename.c_str());
 
-	// Load texture to be used on the object
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/download.jpg");
-	resman_.LoadResource(Texture, "WoodTexture", filename.c_str());
-
     // Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/metal.png");
 	resman_.LoadResource(Texture, "MetalTexture", filename.c_str());
 
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/orb3.png");
 	resman_.LoadResource(Texture, "OrbTexture", filename.c_str());
-
-    // Load texture to be used in normal mapping
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map2.png");
-    resman_.LoadResource(Texture, "NormalMap", filename.c_str());
 
     // Load material to be applied to particles
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle2");
@@ -840,7 +802,7 @@ void Game::Controls(void)
     }
 
     // View control
-    float rot_factor(glm::pi<float>() / 270.0); // amount the ship turns per keypress
+    float rot_factor(glm::pi<float>() / 90.0); // amount the ship turns per keypress
     float trans_factor = 5.0; // amount the ship steps forward per keypress
     
     if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS){
@@ -849,49 +811,22 @@ void Game::Controls(void)
     if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS){
         game->player_->Yaw(-rot_factor);
     }
-
-    float speed_factor = 0.0025f;
     if(glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS){
-        // player_->SetSpeed(player_->GetSpeed()+4.0f*speed_factor);
         game->player_->Translate(game->player_->GetForward()*trans_factor);
     }
     else if(glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS){
-        // player_->SetSpeed(player_->GetSpeed()-3.0f*speed_factor);
         game->player_->Translate(game->player_->GetForward()*-trans_factor);
-    }else{
-        // player_->SetSpeed(player_->GetSpeed()*-trans_factor);
     }
-
-    //DISABLED BECAUSE IT DOESNT MAKE SENSE IN THE GAME RIGHT NOW 
-    // if (glfwGetKey(window_, GLFW_KEY_J) == GLFW_PRESS){
-    //     game->player_->Translate(-game->player_->GetSide()*trans_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS){
-    //     game->player_->Translate(game->player_->GetSide()*trans_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS){
-    //     game->player_->Translate(game->player_->GetUp()*trans_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS){
-    //     game->player_->Translate(-game->player_->GetUp()*trans_factor);
-    // }
     if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
         game->player_->Pitch(rot_factor);
     }
     if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS){
         game->player_->Pitch(-rot_factor);
     }
-    // if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS){
-            // game->player_->Roll(rot_factor);
-    //     
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS){
-    //     
-    // game->player_->Roll(-rot_factor);
-    // }
+   
 }
 
-
+// Creates the 2-D array that determines whether a section of the map is traversable or not
 std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std::vector<float>> height_values) {
 
     std::vector<std::vector<bool>> impassableMap;
@@ -929,6 +864,7 @@ std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std:
 
 }
 
+// Creates the asteroids scattered across the surface of the height map
 void Game::CreateAsteroidField(int num_asteroids, SceneNode* floor_, std::vector<std::vector<float>> height_values) {
 
     int length_count = height_values.size();

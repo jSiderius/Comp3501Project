@@ -18,7 +18,6 @@
 #include "scene_graph.h"
 #include "resource_manager.h"
 #include "camera.h"
-#include "asteroid.h"
 #include "player.h"
 #include "orb.h"
 
