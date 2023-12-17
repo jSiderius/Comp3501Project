@@ -2,7 +2,7 @@
 
 namespace game {
 
-Orb::Orb(const std::string name, const Resource *geometry, const Resource *material, const Resource* texture) : SceneNode(name, geometry, material, texture) {
+Orb::Orb(const std::string name, const Resource *geometry, const Resource *material, const Resource* texture, SceneNode* particles) : SceneNode(name, geometry, material, texture), particles_(particles) {
 }
 
 
@@ -23,11 +23,6 @@ void Orb::SetAngM(glm::quat angm){
 
 void Orb::SetRadius(float radius){
     radius_ = radius;
-}
-
-void Orb::Update(void){
-
-    Rotate(angm_);
 }
 
 void Orb::Update(std::vector<std::vector<float>> height_values, float length, float width){
@@ -53,12 +48,8 @@ void Orb::Update(std::vector<std::vector<float>> height_values, float length, fl
         height = 4.0 + floor_pos_.y + (height/5.0f) * floor_scale_.y;
 
         SetPosition(glm::vec3(position.x, height, position.z));
+        particles_->SetPosition(GetPosition());
     }
-
-    //  (1-t)*( (1-s)*a+s*b)) + t*( (1-s)*c+s*d)
-
-    // float trans_factor = 0.5;
-    // Translate(GetForward()*trans_factor*speed_);
 }
 
 bool Orb::Colliding(glm::vec3 position, float radius){
@@ -78,6 +69,18 @@ void Orb::SetFloorScale(glm::vec3 floor_scale) {
 
 void Orb::SetFloorPos(glm::vec3 floor_pos) {
     floor_pos_ = floor_pos;
+}
+
+void Orb::Update(void){
+    particles_->SetPosition(GetPosition());
+    particles_->Update();
+    Rotate(angm_);
+    // SceneNode::Update();
+}
+
+void Orb::Draw(Camera *camera){
+    particles_->Draw(camera);
+    SceneNode::Draw(camera);
 }
 
 } // namespace game
