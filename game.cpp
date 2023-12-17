@@ -144,11 +144,24 @@ void Game::Init2D(void){
     glDeleteShader(vertexShaderID2D);
     glDeleteShader(fragmentShaderID2D);
 
-    // Load the PNG image
-    // GLuint textureID;
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Rover.png"), &textureIDs[0]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\marsScreen.jpg"), &textureIDs[1]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\0.png"), &numberTextures[0]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\1.png"), &numberTextures[1]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\2.png"), &numberTextures[2]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\3.png"), &numberTextures[3]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\4.png"), &numberTextures[4]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\5.png"), &numberTextures[5]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\6.png"), &numberTextures[6]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\7.png"), &numberTextures[7]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\8.png"), &numberTextures[8]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\9.png"), &numberTextures[9]);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\slash.png"), &slash);
+}
+
+void Game::Load2DTexture(std::string filename, GLuint *textureID){
     int width, height;
 
-    std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("\\Rover.png");
     unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
     if (!image) {
         std::cerr << "Failed to load PNG image\n";
@@ -156,26 +169,8 @@ void Game::Init2D(void){
     }
 
     // Generate OpenGL texture
-    glGenTextures(1, &textureIDs[0]);
-    glBindTexture(GL_TEXTURE_2D, textureIDs[0]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    SOIL_free_image_data(image);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("\\marsScreen.jpg");
-    image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
-    if (!image) {
-        std::cerr << "Failed to load PNG image\n";
-        exit(EXIT_FAILURE);
-    }
-
-    // Generate OpenGL texture
-    glGenTextures(1, &textureIDs[1]);
-    glBindTexture(GL_TEXTURE_2D, textureIDs[1]);
+    glGenTextures(1, textureID);
+    glBindTexture(GL_TEXTURE_2D, *textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
     SOIL_free_image_data(image);
 
@@ -183,7 +178,7 @@ void Game::Init2D(void){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    
 }
 
 
@@ -248,15 +243,73 @@ void Game::Render2DOverlay(void){
     glDisableVertexAttribArray(1);
     glDeleteBuffers(1, &rectangleVBO);
 
-    // RenderPNG();
+    int collected_orbs = num_orbs_init_ - num_orbs_;
+    RenderPNG(0, numberTextures[ collected_orbs / 10]);
+    RenderPNG(100, numberTextures[collected_orbs%10]);
+    RenderPNG(200, slash);
+    RenderPNG(300, numberTextures[num_orbs_init_/10]);
+    RenderPNG(400, numberTextures[num_orbs_init_%10]);
 
     // Re-enable depth testing for subsequent rendering
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Game::RenderPNG() {
-    return;
+void Game::RenderPNG(float offset_x, GLuint textureID) {
+     // Set up 2D rendering, using orthographic projection
+    glDisable(GL_DEPTH_TEST);
+
+    // Use the 2D shader program
+    glUseProgram(programID2D);
+
+    // Set uniform variables (e.g., color)
+    GLuint colorUniform = glGetUniformLocation(programID2D, "color");
+    glUniform4f(colorUniform, 1.0f, 0.0f, 0.0f, 1.0f);  // Red color
+    
+    glm::mat4 projectionMatrix = glm::ortho(0.0f, window_width_g * 1.0f, 0.0f, window_height_g * 1.0f, -1.0f, 1.0f);
+    GLuint projectionMatrixUniform = glGetUniformLocation(programID2D, "projection_mat");
+    glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    // Define vertices for a simple rectangle
+    float rectangleVertices[] = {
+        offset_x + .05f * window_width_g, 0.95f*window_height_g, 0.0f, 0.0f, // Top-left corner
+        offset_x + .1f * window_width_g, 0.95f*window_height_g, 1.0f, 0.0f,  // Top-right corner
+        offset_x + .1f*window_width_g, 0.85f*window_height_g, 1.0f, 1.0f,  // Bottom-right corner
+        offset_x + .05f*window_width_g, 0.85f*window_height_g, 0.0f, 1.0f   // Bottom-left corner
+    };
+
+    // Generate a vertex buffer object (VBO) for the rectangle
+    GLuint rectangleVBO;
+    glGenBuffers(1, &rectangleVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, rectangleVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), rectangleVertices, GL_STATIC_DRAW);
+
+    // Enable vertex attributes
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // Bind texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Set the texture uniform in the shader
+    glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
+
+    // Render the rectangle
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    // Disable vertex attributes and clean up resources
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDeleteBuffers(1, &rectangleVBO);
+
+    // RenderPNG();
+
+    // Re-enable depth testing for subsequent rendering
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -490,15 +543,15 @@ void Game::SetupResources(void){
     resman_.LoadResource(Texture, "NormalMap", filename.c_str());
 
     // Load material to be applied to particles
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle1");
-    resman_.LoadResource(Material, "ParticleMaterial1", filename.c_str());
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle2");
+    resman_.LoadResource(Material, "ParticleMaterial2", filename.c_str());
 
     // // Load material to be applied to particles
-    // filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle2");
-    // resman_.LoadResource(Material, "ParticleMaterial2", filename.c_str());
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle3");
+    resman_.LoadResource(Material, "ParticleMaterial3", filename.c_str());
 
-    resman_.CreateSphereParticles("SphereParticles");
-    // resman_.CreateFireworkParticles("FireworkParticles");
+    resman_.CreateParticleEffect2("BeaconParticles");
+    resman_.CreateParticleEffect3("SphereParticles");
 }
 
 
@@ -512,13 +565,6 @@ void Game::SetupScene(void){
     game::SceneNode *floor = CreateInstance("Floor", "TerrainMesh", "TextureShader", "RockyTexture"); 
     game::SceneNode *skybox = CreateInstance("SkyBox", "SphereMesh", "TextureShader", "StaryTexture");
 
-    game::SceneNode *particles1 = CreateInstance("ParticleInstance1", "SphereMesh", "ParticleMaterial1");
-    // game::SceneNode *particles2 = CreateInstance("ParticleInstance1", "SphereParticles", "ParticleMaterial1");
-
-    // particles1->Translate(glm::vec3(10.0f, 0.0, 0.0));
-    // game::SceneNode *particles2 = CreateInstance("ParticleInstance2", "FireworkParticles", "ParticleMaterial2", "RockyTexture");
-    // particles2->Translate(glm::vec3(-1.5, 0.0, 0.0));
-
     for(int i = 0; i < num_orbs_; i++){
         std::stringstream ss;
         ss << i;
@@ -526,7 +572,8 @@ void Game::SetupScene(void){
         std::string name = "OrbInstance" + index;
 
         orbs_[i] = CreateOrbInstance(name, "SphereMesh", "TextureShader", "OrbTexture");
-        orbs_[i]->Translate(glm::vec3(i*4,i*4,i));
+        // orbs_[i]->SetPosition(glm::vec3(((double) rand() / RAND_MAX) * length_, 0, ((double) rand() / RAND_MAX) * width_)); //Working for length_ = width_, might have to swap in alternate case
+        // orbs_[i]->Translate(glm::vec3(((double) (rand() * 40) / (RAND_MAX)), 0, ((double) (rand() * 40) / (RAND_MAX))));
         orbs_[i]->Scale(glm::vec3(3.0, 3.0, 3.0));
         orbs_[i]->SetRadius(3.0f);
     }
@@ -560,6 +607,11 @@ void Game::MainLoop(void){
         orbs_[i]->SetFloorPos(floor->GetPosition());
         orbs_[i]->SetFloorScale(floor->GetScale());
         orbs_[i]->SetImpassableMap(impassable_map);
+        // orbs_[i]->SetPosition(glm::vec3(( (double) rand() / RAND_MAX) * length_ * floor->GetScale().x, 0,((double) rand() / RAND_MAX) * width_ * floor->GetScale().z));
+        double randx = (((double) rand() / RAND_MAX) * length_ * floor->GetScale().x + floor->GetPosition().x);
+        double randz = -((double) rand() / RAND_MAX) * width_ * floor->GetScale().z + floor->GetPosition().z;
+        orbs_[i]->SetPosition(glm::vec3(randx, 0, randz));
+        // std::cout << "Orb " << i << " at " << randx << ", " << randz << std::endl;
         orbs_[i]->Update(height_map, length_ , width_);
     }
     
@@ -627,6 +679,9 @@ void Game::UpdateOrbs(void){
 
     for(int i = 0; i < num_orbs_; i++){
         if(orbs_[i]->Colliding(player_->GetPosition(), 2)){
+            SceneNode *new_particles = CreateInstance("ParticleInstance", "SphereParticles", "ParticleMaterial3");
+            new_particles->SetPosition(orbs_[i]->GetPosition());
+
             delete orbs_[i];
             orbs_[i] = orbs_[num_orbs_ - 1];
             num_orbs_--;
@@ -656,16 +711,28 @@ Game::~Game(){
     glfwTerminate();
 }
 
-
 Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name){
 
+    Resource* geom = resman_.GetResource("BeaconParticles");
+    if (!geom){
+        throw(GameException(std::string("Could not find resource \"ParticleInstance1\"")));
+    }
+
+    Resource* mat = resman_.GetResource("ParticleMaterial2");
+    if (!mat){
+        throw(GameException(std::string("Could not find resource \"BeaconParticles\"")));
+    }
+
+
+    SceneNode *scn = new SceneNode("ParticleInstance", geom, mat);
+
     // Get resources
-    Resource *geom = resman_.GetResource(object_name);
+    geom = resman_.GetResource(object_name);
     if (!geom){
         throw(GameException(std::string("Could not find resource \"")+object_name+std::string("\"")));
     }
 
-    Resource *mat = resman_.GetResource(material_name);
+    mat = resman_.GetResource(material_name);
     if (!mat){
         throw(GameException(std::string("Could not find resource \"")+material_name+std::string("\"")));
     }
@@ -678,11 +745,9 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
         }
     }
 
-    SceneNode* particles = CreateInstance("ParticleInstance1", "SphereParticles", "ParticleMaterial1");
-    particles->Translate(glm::vec3(100,100,100));
+    
     // Create asteroid instance
-    Orb *orb = new Orb(entity_name, geom, mat, tex, particles);
-    // scene_.AddNode(orb);
+    Orb *orb = new Orb(entity_name, geom, mat, tex, scn);
     return orb;
 }
 

@@ -52,7 +52,8 @@ namespace game {
             static std::vector<std::vector<float>> ReadHeightMap(const std::string& filename);
 
             void ResourceManager::CreateFireworkParticles(std::string object_name, int num_particles=100);
-            void ResourceManager::CreateSphereParticles(std::string object_name, int num_particles=10000);
+            void ResourceManager::CreateParticleEffect2(std::string object_name, int num_particles=10000);
+            void ResourceManager::CreateParticleEffect3(std::string object_name, int num_particles=10000);
 
         private:
             // List storing all resources
