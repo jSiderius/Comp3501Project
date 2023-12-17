@@ -12,7 +12,7 @@ in float timestep[];
 uniform mat4 projection_mat;
 
 // Simulation parameters (constants)
-uniform float particle_size = 0.03;
+uniform float particle_size = 0.01;
 
 // Attributes passed to the fragment shader
 out vec4 frag_color;
@@ -48,3 +48,4 @@ void main(void){
 
      EndPrimitive();
 }
+ 

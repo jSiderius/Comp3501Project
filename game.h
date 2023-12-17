@@ -67,6 +67,7 @@ namespace game {
             // Player abstraction
             Player *player_;
 
+            int num_orbs_init_ = 20;
             int num_orbs_ = 20; 
             //Orb, Array Eventually
             Orb* orbs_[20]; 
@@ -78,13 +79,15 @@ namespace game {
             bool post_game = false; 
 
             //height map length and width
-            float length_ = 800;
-            float width_ = 800;
+            float length_ = 500;
+            float width_ = 500;
 
             GLuint programID3D;
             GLuint programID2D;
 
             GLuint textureIDs[2];
+            GLuint numberTextures[10];
+            GLuint slash;
 
             // Methods to initialize the game
             void InitWindow(void);
@@ -95,7 +98,8 @@ namespace game {
             void Render2DOverlay(void);
             void RenderText(const char* text, float x, float y, float scale);
             void RenderGameMenu(int menu_index);
-            void RenderPNG();
+            void RenderPNG(float offset_x, GLuint texture);
+            void Load2DTexture(std::string filename, GLuint* textureID);
 
             // Methods to handle events
             static void ResizeCallback(GLFWwindow* window, int width, int height);

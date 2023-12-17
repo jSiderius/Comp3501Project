@@ -19,9 +19,7 @@
 // Main function that builds and runs the game
 int main(int argc, char** argv){
 
-    // TitleScreen titleScreen;
-    // titleScreen.run();
-    // return 0;
+    srand(static_cast<unsigned int>(time(0)));
 
     game::Game app; // Game application
 
