@@ -49,6 +49,13 @@ void SceneGraph::AddNode(SceneNode *node){
     node_.push_back(node);
 }
 
+void SceneGraph::DeleteNode(std::string node_name) {
+    for (int i = 0; i < node_.size(); i++) {
+        if (node_[i]->GetName() == node_name) {
+            node_.erase(node_.begin() + i);
+        }
+    }
+}
 
 SceneNode *SceneGraph::GetNode(std::string node_name) const {
 

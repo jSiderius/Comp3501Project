@@ -51,7 +51,7 @@ void Orb::Update(std::vector<std::vector<float>> height_values, float length, fl
 
         SetPosition(glm::vec3(position.x, height, position.z));
         particles_->SetPosition(GetPosition());
-        particles_->print();
+
     }
 }
 
@@ -77,10 +77,9 @@ void Orb::SetFloorPos(glm::vec3 floor_pos) {
 void Orb::Update(void){
     particles_->SetPosition(GetPosition());
     glm::vec3 pos = particles_->GetPosition();
-    std::cout<<pos.x<<" "<<pos.y<<" "<<pos.z<<std::endl;
     particles_->Update();
     Rotate(angm_);
-    // SceneNode::Update();
+
 }
 
 void Orb::Draw(Camera *camera){

@@ -534,8 +534,6 @@ void Game::SetupScene(void){
         std::string name = "OrbInstance" + index;
 
         orbs_[i] = CreateOrbInstance(name, "SphereMesh", "TextureShader", "OrbTexture");
-        // orbs_[i]->SetPosition(glm::vec3(((double) rand() / RAND_MAX) * length_, 0, ((double) rand() / RAND_MAX) * width_)); //Working for length_ = width_, might have to swap in alternate case
-        // orbs_[i]->Translate(glm::vec3(((double) (rand() * 40) / (RAND_MAX)), 0, ((double) (rand() * 40) / (RAND_MAX))));
         orbs_[i]->Scale(glm::vec3(3.0, 3.0, 3.0));
         orbs_[i]->SetRadius(3.0f);
     }
@@ -569,16 +567,16 @@ void Game::MainLoop(void){
         orbs_[i]->SetFloorPos(floor->GetPosition());
         orbs_[i]->SetFloorScale(floor->GetScale());
         orbs_[i]->SetImpassableMap(impassable_map);
-        // orbs_[i]->SetPosition(glm::vec3(( (double) rand() / RAND_MAX) * length_ * floor->GetScale().x, 0,((double) rand() / RAND_MAX) * width_ * floor->GetScale().z));
+        
         double randx = (((double) rand() / RAND_MAX) * length_ * floor->GetScale().x + floor->GetPosition().x);
         double randz = -((double) rand() / RAND_MAX) * width_ * floor->GetScale().z + floor->GetPosition().z;
         orbs_[i]->SetPosition(glm::vec3(randx, 0, randz));
-        // std::cout << "Orb " << i << " at " << randx << ", " << randz << std::endl;
         orbs_[i]->Update(height_map, length_ , width_);
     }
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
+
         // Animate the scene
         if (animating_ && !pre_game){
             static double last_time = 0;
@@ -614,12 +612,14 @@ void Game::MainLoop(void){
         // Draw the scene
         scene_.Draw(&camera_);
 
-        if(pre_game){ 
-            RenderGameMenu(0); 
+        if (pre_game) {
+            RenderGameMenu(0);
             Controls();
-        }else if(post_game){
+        }
+        else if (post_game) {
             RenderGameMenu(1);
-        }else{
+        }
+        else {
             Render2DOverlay();
             UpdateOrbs();
         }
@@ -644,13 +644,15 @@ void Game::UpdateOrbs(void){
             SceneNode *new_particles = CreateInstance("ParticleInstance", "SphereParticles", "ParticleMaterial3");
             new_particles->SetPosition(orbs_[i]->GetPosition());
 
+            scene_.DeleteNode(orbs_[i]->GetName());
             delete orbs_[i];
+            
             orbs_[i] = orbs_[num_orbs_ - 1];
             num_orbs_--;
             break;
         }
         orbs_[i]->Update();
-        orbs_[i]->Draw(&camera_);
+        //orbs_[i]->Draw(&camera_);
         //add collision function
         //remove orb from array / delete and num_orbs_ --
         //maybe give orbs some minimal amount of movement
@@ -710,6 +712,7 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
     
     // Create asteroid instance
     Orb *orb = new Orb(entity_name, geom, mat, tex, scn);
+    scene_.AddNode(orb);
     return orb;
 }
 
@@ -738,13 +741,13 @@ void Game::CreatePlayer(std::string entity_name, std::string object_name, std::s
     for(int i = 0; i < num_wheels; i++){
         std::stringstream ss;
         ss << "Wheel" << i;
-        wheels[i] = CreateInstance(ss.str(), "SphereMesh", "TextureShader", "TireTexture");
+        wheels[i] = CreateNonSceneInstance(ss.str(), "SphereMesh", "TextureShader", "TireTexture");
         wheels[i]->Scale(glm::vec3(0.3, 0.3, 0.3));
     }
 
     SceneNode* antennas[2];
-    antennas[0] = CreateInstance("Antenna1", "AntennaCylinderMesh", "TextureShader", "MetalTexture");
-    antennas[1] = CreateInstance("Antenna2", "AntennaTorusMesh", "TextureShader", "MetalTexture");
+    antennas[0] = CreateNonSceneInstance("Antenna1", "AntennaCylinderMesh", "TextureShader", "MetalTexture");
+    antennas[1] = CreateNonSceneInstance("Antenna2", "AntennaTorusMesh", "TextureShader", "MetalTexture");
 
     Player *player = new Player(entity_name, geom, mat, tex, wheels, num_wheels, antennas, 2, length_, width_);
     scene_.AddNode(player);
@@ -776,6 +779,30 @@ SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name
     }
 
     SceneNode *scn = scene_.CreateNode(entity_name, geom, mat, tex);
+    return scn;
+}
+
+SceneNode* Game::CreateNonSceneInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name) {
+
+    Resource* geom = resman_.GetResource(object_name);
+    if (!geom) {
+        throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
+    }
+
+    Resource* mat = resman_.GetResource(material_name);
+    if (!mat) {
+        throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+    }
+
+    Resource* tex = NULL;
+    if (texture_name != "") {
+        tex = resman_.GetResource(texture_name);
+        if (!tex) {
+            throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+        }
+    }
+
+    SceneNode* scn = new SceneNode(entity_name, geom, mat, tex);
     return scn;
 }
 
