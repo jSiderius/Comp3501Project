@@ -99,7 +99,7 @@ void Game::InitView(void){
 }
 
 
-void Game::Init2D(void){
+void Game::Init2D(void) {
     const char* vertexShaderCode2D = R"(
         #version 330 core
         layout(location = 0) in vec2 vertexPosition;
@@ -121,6 +121,37 @@ void Game::Init2D(void){
         uniform sampler2D textureSampler;
         void main() {
             fragColor = texture2D(textureSampler, fragTextureCoord);
+            if (fragColor.a == 0) {
+                discard; 
+            }
+        }
+    )";
+
+    const char* vertexShaderCode2DTank = R"(
+        #version 330 core
+        layout(location = 0) in vec2 vertexPosition;
+        layout(location = 1) in vec2 textureCoord;
+        out vec2 fragTextureCoord;
+        uniform mat4 projection_mat;
+        void main() {
+            fragTextureCoord = textureCoord;
+            gl_Position = projection_mat * vec4(vertexPosition, 0.0, 1.0);
+        }
+    )";
+
+    const char* fragmentShaderCode2DTank = R"(
+        #version 330 core
+
+        in vec2 fragTextureCoord;
+        out vec4 fragColor;
+        uniform vec4 color;
+        uniform sampler2D textureSampler;
+        uniform float fill;
+        void main() {
+            fragColor = texture2D(textureSampler, fragTextureCoord);
+            if (fragColor.a == 0 || fragTextureCoord.y < fill) {
+                discard; 
+            }
         }
     )";
 
@@ -157,6 +188,29 @@ void Game::Init2D(void){
     Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\8.png"), &numberTextures[8]);
     Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\9.png"), &numberTextures[9]);
     Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\Numbers\\slash.png"), &slash);
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\tankOutside.png"), &textureIDs[2]);
+
+    // Compile the vertex shader for 2D rendering
+    GLuint vertexShaderID2DTank = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShaderID2DTank, 1, &vertexShaderCode2DTank, nullptr);
+    glCompileShader(vertexShaderID2DTank);
+
+    // Compile the fragment shader for 2D rendering
+    GLuint fragmentShaderID2DTank = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderID2DTank, 1, &fragmentShaderCode2DTank, nullptr);
+    glCompileShader(fragmentShaderID2DTank);
+
+    // Link the 2D shader program
+    programID2DTank = glCreateProgram();
+    glAttachShader(programID2DTank, vertexShaderID2DTank);
+    glAttachShader(programID2DTank, fragmentShaderID2DTank);
+    glLinkProgram(programID2DTank);
+
+    // Clean up shader resources
+    glDeleteShader(vertexShaderID2DTank);
+    glDeleteShader(fragmentShaderID2DTank);
+
+    Load2DTexture(std::string(MATERIAL_DIRECTORY) + std::string("\\tankInside.png"), &textureIDs[3]);
 }
 
 void Game::Load2DTexture(std::string filename, GLuint *textureID){
@@ -254,6 +308,113 @@ void Game::Render2DOverlay(void){
     glEnable(GL_DEPTH_TEST);
 }
 
+void Game::RenderTank(void) {
+    // Set up 2D rendering, using orthographic projection
+    glDisable(GL_DEPTH_TEST);
+
+    // Use the 2D shader program
+    glUseProgram(programID2D);
+
+    // Set uniform variables (e.g., color)
+    GLuint colorUniform2D = glGetUniformLocation(programID2D, "color");
+    glUniform4f(colorUniform2D, 1.0f, 0.0f, 0.0f, 1.0f);  // Red color
+
+    glm::mat4 projectionMatrix2D = glm::ortho(0.0f, window_width_g * 1.0f, 0.0f, window_height_g * 1.0f, -1.0f, 1.0f);
+    GLuint projectionMatrixUniform2D = glGetUniformLocation(programID2D, "projection_mat");
+    glUniformMatrix4fv(projectionMatrixUniform2D, 1, GL_FALSE, glm::value_ptr(projectionMatrix2D));
+
+    // Define vertices for a simple rectangle
+    float rectangleVertices2D[] = {
+        1.0f * window_width_g / 20.0f, 1.0f * window_height_g / 20.0f, 0.0f, 1.0f, // Top-left corner
+        7.0f * window_width_g / 20.0f, 1.0f * window_height_g / 20.0f, 1.0f, 1.0f,  // Top-right corner
+        7.0f * window_width_g / 20.0f, 7.0f * window_height_g / 20.0f, 1.0f, 0.0f,  // Bottom-right corner
+        1.0f * window_width_g / 20.0f, 7.0f * window_height_g / 20.0f, 0.0f, 0.0f   // Bottom-left corner
+    };
+
+    // Generate a vertex buffer object (VBO) for the rectangle
+    GLuint rectangleVBO2D;
+    glGenBuffers(1, &rectangleVBO2D);
+    glBindBuffer(GL_ARRAY_BUFFER, rectangleVBO2D);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices2D), rectangleVertices2D, GL_STATIC_DRAW);
+
+    // Enable vertex attributes
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // Bind texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[2]);
+
+    // Set the texture uniform in the shader
+    glUniform1i(glGetUniformLocation(programID2D, "textureSampler"), 0);
+
+    // Render the rectangle
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    // Disable vertex attributes and clean up resources
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDeleteBuffers(1, &rectangleVBO2D);
+
+    // Use the 2D shader program for the tank
+    glUseProgram(programID2DTank);
+
+    // Set uniform variables (e.g., color)
+    GLuint colorUniform2DTank = glGetUniformLocation(programID2DTank, "color");
+    glUniform4f(colorUniform2DTank, 1.0f, 0.0f, 0.0f, 1.0f);  // Red color
+
+    glm::mat4 projectionMatrix2DTank = glm::ortho(0.0f, window_width_g * 1.0f, 0.0f, window_height_g * 1.0f, -1.0f, 1.0f);
+    GLuint projectionMatrixUniform2DTank = glGetUniformLocation(programID2DTank, "projection_mat");
+    glUniformMatrix4fv(projectionMatrixUniform2DTank, 1, GL_FALSE, glm::value_ptr(projectionMatrix2DTank));
+
+    // Define vertices for a simple rectangle
+    float rectangleVertices2DTank[] = {
+        1.0f * window_width_g / 20.0f, 1.0f * window_height_g / 20.0f, 0.0f, 1.0f, // Top-left corner
+        7.0f * window_width_g / 20.0f, 1.0f * window_height_g / 20.0f, 1.0f, 1.0f,  // Top-right corner
+        7.0f * window_width_g / 20.0f, 7.0f * window_height_g / 20.0f, 1.0f, 0.0f,  // Bottom-right corner
+        1.0f * window_width_g / 20.0f, 7.0f * window_height_g / 20.0f, 0.0f, 0.0f   // Bottom-left corner
+    };
+
+    // Generate a vertex buffer object (VBO) for the rectangle
+    GLuint rectangleVBO2DTank;
+    glGenBuffers(1, &rectangleVBO2DTank);
+    glBindBuffer(GL_ARRAY_BUFFER, rectangleVBO2DTank);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices2DTank), rectangleVertices2DTank, GL_STATIC_DRAW);
+
+    // Enable vertex attributes
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // Bind texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureIDs[3]);
+
+    // Set the texture uniform in the shader
+    glUniform1i(glGetUniformLocation(programID2DTank, "textureSampler"), 0);
+
+    GLint fill_var = glGetUniformLocation(programID2DTank, "fill");
+    float current_fill = .75 - (player_->fill * .5);
+    glUniform1f(fill_var, current_fill);
+
+    // Render the rectangle for the tank
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    // Disable vertex attributes and clean up resources
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDeleteBuffers(1, &rectangleVBO2DTank);
+
+    // RenderPNG();
+
+    // Re-enable depth testing for subsequent rendering
+    glEnable(GL_DEPTH_TEST);
+}
 
 void Game::RenderPNG(float offset_x, GLuint textureID) {
      // Set up 2D rendering, using orthographic projection
@@ -512,6 +673,12 @@ void Game::SetupResources(void){
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle3");
     resman_.LoadResource(Material, "ParticleMaterial3", filename.c_str());
 
+    // Load material for screen-space effect
+    filename = std::string(MATERIAL_DIRECTORY) + std::string("/screen_space");
+    resman_.LoadResource(Material, "ScreenSpaceMaterial", filename.c_str());
+
+    // Setup drawing to texture
+    scene_.SetupDrawToTexture();
     resman_.CreateParticleEffect2("BeaconParticles");
     resman_.CreateParticleEffect3("SphereParticles");
 }
@@ -605,12 +772,24 @@ void Game::MainLoop(void){
 
                 skybox->SetPosition(player_->GetPosition());
 
+                player_->fill = player_->fill - (current_time - last_time) * 0.01;
+                if (player_->fill < 0) {
+                    post_game = true;
+                }
+
                 last_time = current_time;
             }
         }
 
-        // Draw the scene
-        scene_.Draw(&camera_);
+        else if (pre_game) {
+            player_->fill = 1.0;
+        }
+
+        // Draw the scene to a texture
+        scene_.DrawToTexture(&camera_);
+        // Process the texture with a screen-space effect and display
+        // the texture
+        scene_.DisplayTexture(resman_.GetResource("ScreenSpaceMaterial")->GetResource(), player_->fill);
 
         if (pre_game) {
             RenderGameMenu(0);
@@ -621,6 +800,7 @@ void Game::MainLoop(void){
         }
         else {
             Render2DOverlay();
+            RenderTank();
             UpdateOrbs();
         }
             
@@ -649,13 +829,10 @@ void Game::UpdateOrbs(void){
             
             orbs_[i] = orbs_[num_orbs_ - 1];
             num_orbs_--;
+            player_->fill = 1.0;
             break;
         }
-        orbs_[i]->Update();
-        //orbs_[i]->Draw(&camera_);
-        //add collision function
-        //remove orb from array / delete and num_orbs_ --
-        //maybe give orbs some minimal amount of movement
+
     }
 }
 

@@ -48,7 +48,8 @@ namespace game {
 
             void Draw(Camera *camera) override;
 
-            
+            float fill = 1.0;
+
         private:
             // Angular momentum of asteroid
             glm::quat angm_;
