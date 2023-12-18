@@ -463,14 +463,8 @@ void Game::SetupResources(void){
     // Create geometry of the objects
     resman_.CreateSphere("SphereMesh");
     resman_.CreateSphere("AsteroidMesh", 3, 90, 45);
-	resman_.CreateTorus("SimpleTorusMesh", 0.8, 0.35, 30, 30);
-	resman_.CreateSeamlessTorus("SeamlessTorusMesh", 0.8, 0.35, 80, 80);
-	resman_.CreateWall("FlatSurface");
-	resman_.CreateCylinder("SimpleCylinderMesh", 2.0, 0.4, 30, 30);
     resman_.CreateTerrain("TerrainMesh", length_, width_);
     resman_.CreateRectangle("PlayerMesh", 1.0, 0.5, 3.0);
-    resman_.CreateSquare("SquareMesh");
-
     resman_.CreateCylinder("AntennaCylinderMesh", 1.0, 0.025, 30, 30);
     resman_.CreateSeamlessTorus("AntennaTorusMesh", 0.1, 0.05, 80, 80);
 
@@ -479,33 +473,9 @@ void Game::SetupResources(void){
 	std::string filename = std::string(MATERIAL_DIRECTORY) + std::string("/textured_material"); //SO /textured_material_fp.glsl, /textured_material_vp.glsl ... 
 	resman_.LoadResource(Material, "TextureShader", filename.c_str());
 
-	// shader for corona effect
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/corona");
-	resman_.LoadResource(Material, "Procedural", filename.c_str());
-
-    // Load material to be used for normal mapping
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map");
-    resman_.LoadResource(Material, "NormalMapMaterial", filename.c_str());
-
-	// shader for checkerboard effect
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/rectangle"); 
-	resman_.LoadResource(Material, "Blocks", filename.c_str());
-
-    //ADD THE CHECKERBOARD MATERIAL
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/procedural");
-	resman_.LoadResource(Material, "Checkers", filename.c_str());
-
 	// shader for 3-term lighting effect
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/lit");
 	resman_.LoadResource(Material, "Lighting", filename.c_str());
-
-    // SHADER FOR SUN OBJECT
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/sun");
-	resman_.LoadResource(Material, "Sun", filename.c_str());
-
-    // SHADER FOR COMBINED CHECKERBOARD & LIGHTING
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/combined");
-	resman_.LoadResource(Material, "Combined", filename.c_str());
 
 	// Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/mars.jpg");
@@ -527,20 +497,12 @@ void Game::SetupResources(void){
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/asteroid.jpg");
     resman_.LoadResource(Texture, "AsteroidTexture", filename.c_str());
 
-	// Load texture to be used on the object
-	filename = std::string(MATERIAL_DIRECTORY) + std::string("/download.jpg");
-	resman_.LoadResource(Texture, "WoodTexture", filename.c_str());
-
     // Load texture to be used on the object
 	filename = std::string(MATERIAL_DIRECTORY) + std::string("/metal.png");
 	resman_.LoadResource(Texture, "MetalTexture", filename.c_str());
 
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/orb3.png");
 	resman_.LoadResource(Texture, "OrbTexture", filename.c_str());
-
-    // Load texture to be used in normal mapping
-    filename = std::string(MATERIAL_DIRECTORY) + std::string("/normal_map2.png");
-    resman_.LoadResource(Texture, "NormalMap", filename.c_str());
 
     // Load material to be applied to particles
     filename = std::string(MATERIAL_DIRECTORY) + std::string("/particle2");
@@ -572,8 +534,6 @@ void Game::SetupScene(void){
         std::string name = "OrbInstance" + index;
 
         orbs_[i] = CreateOrbInstance(name, "SphereMesh", "TextureShader", "OrbTexture");
-        // orbs_[i]->SetPosition(glm::vec3(((double) rand() / RAND_MAX) * length_, 0, ((double) rand() / RAND_MAX) * width_)); //Working for length_ = width_, might have to swap in alternate case
-        // orbs_[i]->Translate(glm::vec3(((double) (rand() * 40) / (RAND_MAX)), 0, ((double) (rand() * 40) / (RAND_MAX))));
         orbs_[i]->Scale(glm::vec3(3.0, 3.0, 3.0));
         orbs_[i]->SetRadius(3.0f);
     }
@@ -607,16 +567,16 @@ void Game::MainLoop(void){
         orbs_[i]->SetFloorPos(floor->GetPosition());
         orbs_[i]->SetFloorScale(floor->GetScale());
         orbs_[i]->SetImpassableMap(impassable_map);
-        // orbs_[i]->SetPosition(glm::vec3(( (double) rand() / RAND_MAX) * length_ * floor->GetScale().x, 0,((double) rand() / RAND_MAX) * width_ * floor->GetScale().z));
+        
         double randx = (((double) rand() / RAND_MAX) * length_ * floor->GetScale().x + floor->GetPosition().x);
         double randz = -((double) rand() / RAND_MAX) * width_ * floor->GetScale().z + floor->GetPosition().z;
         orbs_[i]->SetPosition(glm::vec3(randx, 0, randz));
-        // std::cout << "Orb " << i << " at " << randx << ", " << randz << std::endl;
         orbs_[i]->Update(height_map, length_ , width_);
     }
     
     // Loop while the user did not close the window
     while (!glfwWindowShouldClose(window_)){
+
         // Animate the scene
         if (animating_ && !pre_game){
             static double last_time = 0;
@@ -652,12 +612,14 @@ void Game::MainLoop(void){
         // Draw the scene
         scene_.Draw(&camera_);
 
-        if(pre_game){ 
-            RenderGameMenu(0); 
+        if (pre_game) {
+            RenderGameMenu(0);
             Controls();
-        }else if(post_game){
+        }
+        else if (post_game) {
             RenderGameMenu(1);
-        }else{
+        }
+        else {
             Render2DOverlay();
             UpdateOrbs();
         }
@@ -682,13 +644,15 @@ void Game::UpdateOrbs(void){
             SceneNode *new_particles = CreateInstance("ParticleInstance", "SphereParticles", "ParticleMaterial3");
             new_particles->SetPosition(orbs_[i]->GetPosition());
 
+            scene_.DeleteNode(orbs_[i]->GetName());
             delete orbs_[i];
+            
             orbs_[i] = orbs_[num_orbs_ - 1];
             num_orbs_--;
             break;
         }
         orbs_[i]->Update();
-        orbs_[i]->Draw(&camera_);
+        //orbs_[i]->Draw(&camera_);
         //add collision function
         //remove orb from array / delete and num_orbs_ --
         //maybe give orbs some minimal amount of movement
@@ -748,6 +712,7 @@ Orb* Game::CreateOrbInstance(std::string entity_name, std::string object_name, s
     
     // Create asteroid instance
     Orb *orb = new Orb(entity_name, geom, mat, tex, scn);
+    scene_.AddNode(orb);
     return orb;
 }
 
@@ -776,13 +741,13 @@ void Game::CreatePlayer(std::string entity_name, std::string object_name, std::s
     for(int i = 0; i < num_wheels; i++){
         std::stringstream ss;
         ss << "Wheel" << i;
-        wheels[i] = CreateInstance(ss.str(), "SphereMesh", "TextureShader", "TireTexture");
+        wheels[i] = CreateNonSceneInstance(ss.str(), "SphereMesh", "TextureShader", "TireTexture");
         wheels[i]->Scale(glm::vec3(0.3, 0.3, 0.3));
     }
 
     SceneNode* antennas[2];
-    antennas[0] = CreateInstance("Antenna1", "AntennaCylinderMesh", "TextureShader", "MetalTexture");
-    antennas[1] = CreateInstance("Antenna2", "AntennaTorusMesh", "TextureShader", "MetalTexture");
+    antennas[0] = CreateNonSceneInstance("Antenna1", "AntennaCylinderMesh", "TextureShader", "MetalTexture");
+    antennas[1] = CreateNonSceneInstance("Antenna2", "AntennaTorusMesh", "TextureShader", "MetalTexture");
 
     Player *player = new Player(entity_name, geom, mat, tex, wheels, num_wheels, antennas, 2, length_, width_);
     scene_.AddNode(player);
@@ -817,6 +782,30 @@ SceneNode *Game::CreateInstance(std::string entity_name, std::string object_name
     return scn;
 }
 
+SceneNode* Game::CreateNonSceneInstance(std::string entity_name, std::string object_name, std::string material_name, std::string texture_name) {
+
+    Resource* geom = resman_.GetResource(object_name);
+    if (!geom) {
+        throw(GameException(std::string("Could not find resource \"") + object_name + std::string("\"")));
+    }
+
+    Resource* mat = resman_.GetResource(material_name);
+    if (!mat) {
+        throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+    }
+
+    Resource* tex = NULL;
+    if (texture_name != "") {
+        tex = resman_.GetResource(texture_name);
+        if (!tex) {
+            throw(GameException(std::string("Could not find resource \"") + material_name + std::string("\"")));
+        }
+    }
+
+    SceneNode* scn = new SceneNode(entity_name, geom, mat, tex);
+    return scn;
+}
+
 
 void Game::Controls(void)
 {
@@ -840,7 +829,7 @@ void Game::Controls(void)
     }
 
     // View control
-    float rot_factor(glm::pi<float>() / 270.0); // amount the ship turns per keypress
+    float rot_factor(glm::pi<float>() / 90.0); // amount the ship turns per keypress
     float trans_factor = 5.0; // amount the ship steps forward per keypress
     
     if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS){
@@ -849,49 +838,22 @@ void Game::Controls(void)
     if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS){
         game->player_->Yaw(-rot_factor);
     }
-
-    float speed_factor = 0.0025f;
     if(glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS){
-        // player_->SetSpeed(player_->GetSpeed()+4.0f*speed_factor);
         game->player_->Translate(game->player_->GetForward()*trans_factor);
     }
     else if(glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS){
-        // player_->SetSpeed(player_->GetSpeed()-3.0f*speed_factor);
         game->player_->Translate(game->player_->GetForward()*-trans_factor);
-    }else{
-        // player_->SetSpeed(player_->GetSpeed()*-trans_factor);
     }
-
-    //DISABLED BECAUSE IT DOESNT MAKE SENSE IN THE GAME RIGHT NOW 
-    // if (glfwGetKey(window_, GLFW_KEY_J) == GLFW_PRESS){
-    //     game->player_->Translate(-game->player_->GetSide()*trans_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_L) == GLFW_PRESS){
-    //     game->player_->Translate(game->player_->GetSide()*trans_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS){
-    //     game->player_->Translate(game->player_->GetUp()*trans_factor);
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS){
-    //     game->player_->Translate(-game->player_->GetUp()*trans_factor);
-    // }
     if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS){
         game->player_->Pitch(rot_factor);
     }
     if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS){
         game->player_->Pitch(-rot_factor);
     }
-    // if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS){
-            // game->player_->Roll(rot_factor);
-    //     
-    // }
-    // if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS){
-    //     
-    // game->player_->Roll(-rot_factor);
-    // }
+   
 }
 
-
+// Creates the 2-D array that determines whether a section of the map is traversable or not
 std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std::vector<float>> height_values) {
 
     std::vector<std::vector<bool>> impassableMap;
@@ -929,6 +891,7 @@ std::vector<std::vector<bool>> Game::CreateImpassableTerrainMap(std::vector<std:
 
 }
 
+// Creates the asteroids scattered across the surface of the height map
 void Game::CreateAsteroidField(int num_asteroids, SceneNode* floor_, std::vector<std::vector<float>> height_values) {
 
     int length_count = height_values.size();
